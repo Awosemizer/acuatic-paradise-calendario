@@ -27,8 +27,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
-      "versionCode": 3,
-      "edgeToEdgeEnabled": false
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
