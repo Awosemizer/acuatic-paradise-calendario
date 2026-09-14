@@ -2,11 +2,17 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
+import { emailToUsername } from '@/src/lib/authUsername';
 import { colors, radius } from '@/src/theme';
 
 export default function PerfilScreen() {
   const router = useRouter();
   const { profile, user, signOut } = useAuth();
+
+  const username =
+    profile?.username || emailToUsername(user?.email) || null;
+  const displayName = profile?.full_name || username || 'Personal del salón';
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -19,12 +25,10 @@ export default function PerfilScreen() {
 
       <View style={styles.card}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {(profile?.full_name || user?.email || 'E').charAt(0).toUpperCase()}
-          </Text>
+          <Text style={styles.avatarText}>{initial}</Text>
         </View>
-        <Text style={styles.name}>{profile?.full_name || 'Personal del salón'}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
+        <Text style={styles.name}>{displayName}</Text>
+        {username ? <Text style={styles.username}>@{username}</Text> : null}
         <Text style={styles.role}>Calendario compartido · {profile?.role ?? 'staff'}</Text>
       </View>
 
@@ -69,7 +73,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: 28, fontWeight: '800', color: colors.navy },
   name: { fontSize: 20, fontWeight: '800', color: colors.ink },
-  email: { color: colors.muted },
+  username: { color: colors.muted },
   role: { color: colors.sky, fontWeight: '700', marginTop: 4 },
   note: { color: colors.muted, marginTop: 18, lineHeight: 20 },
   out: {

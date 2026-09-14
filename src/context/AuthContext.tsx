@@ -1,5 +1,11 @@
 import { Session, User } from '@supabase/supabase-js';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  emailToUsername,
+  isValidUsername,
+  normalizeUsername,
+  usernameToEmail,
+} from '@/src/lib/authUsername';
 import { isSupabaseConfigured, supabase } from '@/src/lib/supabase';
 import type { Profile } from '@/src/types';
 
@@ -8,11 +14,27 @@ type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signIn: (username: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+async function ensureProfileUsername(userId: string, email: string | undefined) {
+  const username = emailToUsername(email);
+  if (!username) return;
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('id, username')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (!data) return;
+  if (data.username) return;
+
+  await supabase.from('profiles').update({ username }).eq('id', userId);
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -50,15 +72,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle()
-      .then(({ data }) => {
+    let cancelled = false;
+
+    (async () => {
+      await ensureProfileUsername(userId, session?.user?.email);
+      const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      if (!cancelled) {
         setProfile((data as Profile | null) ?? null);
-      });
-  }, [session?.user?.id]);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id, session?.user?.email]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -66,16 +93,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user: session?.user ?? null,
       profile,
       loading,
-      signIn: async (email, password) => {
+      signIn: async (username, password) => {
         if (!isSupabaseConfigured) {
           return { error: 'Faltan las variables de entorno de Supabase.' };
         }
+        const normalized = normalizeUsername(username);
+        if (!isValidUsername(normalized)) {
+          return {
+            error:
+              'Usuario inválido. Usa solo letras, números, guion bajo (_) o punto (.).',
+          };
+        }
+        if (!password) {
+          return { error: 'Escribe usuario y contraseña.' };
+        }
+        const email = usernameToEmail(normalized);
         const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
+          email,
           password,
         });
         if (error) {
-          return { error: 'Correo o contraseña incorrectos.' };
+          return { error: 'Usuario o contraseña incorrectos.' };
         }
         return {};
       },

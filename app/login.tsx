@@ -16,7 +16,7 @@ import { colors, radius } from '@/src/theme';
 
 export default function LoginScreen() {
   const { session, signIn } = useAuth();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -25,12 +25,12 @@ export default function LoginScreen() {
 
   async function onSubmit() {
     setError(null);
-    if (!email.trim() || !password) {
-      setError('Escribe correo y contraseña.');
+    if (!username.trim() || !password) {
+      setError('Escribe usuario y contraseña.');
       return;
     }
     setBusy(true);
-    const result = await signIn(email, password);
+    const result = await signIn(username, password);
     setBusy(false);
     if (result.error) setError(result.error);
   }
@@ -59,15 +59,16 @@ export default function LoginScreen() {
           )}
 
           <Text style={styles.heading}>Iniciar sesión</Text>
-          <Text style={styles.hint}>Usa la cuenta del personal del salón.</Text>
+          <Text style={styles.hint}>Usa tu nombre de usuario del personal del salón.</Text>
 
-          <Text style={styles.label}>Correo</Text>
+          <Text style={styles.label}>Usuario</Text>
           <TextInput
-            value={email}
-            onChangeText={setEmail}
+            value={username}
+            onChangeText={setUsername}
             autoCapitalize="none"
-            keyboardType="email-address"
-            placeholder="ana@acuaticparadise.mx"
+            autoCorrect={false}
+            keyboardType="default"
+            placeholder="ana"
             placeholderTextColor={colors.muted}
             style={styles.input}
           />

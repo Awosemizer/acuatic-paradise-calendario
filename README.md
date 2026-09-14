@@ -6,7 +6,7 @@ Las tres personas del staff ven y editan las **mismas** visitas y eventos. Los c
 
 ## Qué incluye
 
-- Inicio de sesión (correo + contraseña)
+- Inicio de sesión (**usuario + contraseña**; sin correo en la interfaz)
 - Vistas **día**, **semana** y **mes**
 - **Visitas** de clientes: nombre, teléfono (opcional), tipo de servicio, fecha/hora, duración, notas y estado (`programada` / `completada` / `cancelada` / `no asistió`)
 - **Eventos** internos (mantenimiento, juntas, cierres): título, fecha/hora, duración, notas — visualmente distintos (coral vs. aqua)
@@ -24,12 +24,33 @@ Las tres personas del staff ven y editan las **mismas** visitas y eventos. Los c
 1. Entra a [https://supabase.com/dashboard](https://supabase.com/dashboard) y crea un proyecto (región cercana, p. ej. `East US`).
 2. Abre **SQL Editor** y pega, en orden:
    - `supabase/migrations/20260914120000_init.sql`
+   - `supabase/migrations/20260914130000_profiles_username.sql` (si ya corriste solo el init anterior, ejecuta este; si es proyecto nuevo y el init ya incluye `username`, también es seguro)
    - `supabase/seed.sql`
-3. En **Authentication → Providers** deja **Email** activado. Desactiva “Confirm email” mientras configuras al equipo (así pueden entrar de inmediato).
-4. Crea **3 usuarios** en **Authentication → Users → Add user** (correo + contraseña). El trigger crea un perfil en `profiles` al dar de alta cada cuenta.
+3. En **Authentication → Providers** deja **Email** activado (Supabase Auth lo usa por debajo). Desactiva **Confirm email** mientras configuras al equipo (así pueden entrar de inmediato).
+4. Crea las **3 cuentas del staff** solo desde el dashboard de Supabase (no hay registro en la app). Ver sección siguiente.
 5. Copia las llaves en **Project Settings → API**:
    - **Project URL** → `EXPO_PUBLIC_SUPABASE_URL`
    - **anon public** → `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+
+### Cuentas del staff (usuario, no correo real)
+
+La app pide **Usuario** y **Contraseña**. Por debajo, Supabase Auth sigue usando email: cada usuario se mapea a un correo sintético:
+
+`usuario` → `usuario@acuaticparadise.local`
+
+(normalizado: minúsculas, sin espacios; solo letras, números, `_` y `.`)
+
+**No hay pantalla de registro.** Crea las 3 cuentas en **Authentication → Users → Add user** con estos correos sintéticos y la contraseña que elijan:
+
+| Usuario en la app | Email a crear en Supabase Auth      | Contraseña        |
+|-------------------|-------------------------------------|-------------------|
+| `ana`             | `ana@acuaticparadise.local`         | (la que elijan)   |
+| `luis`            | `luis@acuaticparadise.local`        | (la que elijan)   |
+| `maria`           | `maria@acuaticparadise.local`       | (la que elijan)   |
+
+El trigger `handle_new_user` crea la fila en `profiles` (incluye `username` = local-part del email). En la app, Ana inicia sesión con usuario `ana` y su contraseña — nunca ve el correo.
+
+Opcional: tras crear cada usuario, en **Table Editor → profiles** puedes poner un `full_name` amigable (p. ej. `Ana`).
 
 ## 2. Variables de entorno
 
@@ -96,12 +117,13 @@ El APK queda en `android/app/build/outputs/apk/release/`. Requiere Android SDK /
 
 ```
 app/                    pantallas (Expo Router)
-  login.tsx             inicio de sesión
+  login.tsx             inicio de sesión (usuario + contraseña)
   (app)/index.tsx       calendario (día / semana / mes)
   (app)/visita/         alta y edición de visitas
   (app)/evento/         alta y edición de eventos
   (app)/perfil.tsx      cuenta y cierre de sesión
 src/                    tema, hooks, componentes
+  lib/authUsername.ts   mapeo usuario → email sintético
 supabase/migrations/    tablas + RLS + Realtime
 supabase/seed.sql       visitas y eventos de ejemplo
 ```
@@ -110,7 +132,7 @@ supabase/seed.sql       visitas y eventos de ejemplo
 
 | Tabla     | Uso                                      | RLS                         |
 |-----------|------------------------------------------|-----------------------------|
-| profiles  | Nombre del staff, ligado a `auth.users`  | Lectura de todos; update propio |
+| profiles  | Nombre / username del staff (`auth.users`) | Lectura de todos; update propio |
 | visits    | Citas / visitas de clientes              | CRUD para `authenticated`   |
 | events    | Eventos internos del salón               | CRUD para `authenticated`   |
 

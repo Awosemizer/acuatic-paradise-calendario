@@ -10,9 +10,14 @@ create extension if not exists "pgcrypto";
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   full_name text not null default '',
+  username text unique,
   role text not null default 'staff',
   created_at timestamptz not null default now()
 );
+
+create unique index if not exists profiles_username_unique_idx
+  on public.profiles (lower(username))
+  where username is not null;
 
 -- ---------------------------------------------------------------------------
 -- Visitas de clientes
@@ -84,10 +89,17 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name)
+  insert into public.profiles (id, full_name, username)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1))
+    coalesce(
+      new.raw_user_meta_data ->> 'full_name',
+      coalesce(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1))
+    ),
+    lower(coalesce(
+      new.raw_user_meta_data ->> 'username',
+      split_part(new.email, '@', 1)
+    ))
   )
   on conflict (id) do nothing;
   return new;

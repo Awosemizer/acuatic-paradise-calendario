@@ -1,6 +1,11 @@
 -- Datos de ejemplo para que el calendario no arranque vacío.
 -- Ejecutar DESPUÉS de la migración, desde el SQL Editor de Supabase.
 -- Horarios en America/Mexico_City (Pachuca). created_by queda en null (válido).
+--
+-- Cuentas del staff (creadas en Authentication → Users, NO en este seed):
+--   ana   → ana@acuaticparadise.local
+--   luis  → luis@acuaticparadise.local
+--   maria → maria@acuaticparadise.local
 
 insert into public.visits (client_name, phone, service_type, starts_at, duration_minutes, notes, status)
 values

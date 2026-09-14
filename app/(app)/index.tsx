@@ -59,7 +59,7 @@ export default function CalendarHome() {
           setSelectedDay(now);
         }}
         onProfile={() => router.push('/(app)/perfil')}
-        staffName={profile?.full_name || user?.email || 'Equipo'}
+        staffName={profile?.full_name || profile?.username || 'Equipo'}
       />
 
       {error ? <Text style={styles.error}>{error}</Text> : null}

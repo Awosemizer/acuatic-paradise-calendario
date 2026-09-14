@@ -3,6 +3,7 @@ export type VisitStatus = 'programada' | 'completada' | 'cancelada' | 'no_asisti
 export type Profile = {
   id: string;
   full_name: string;
+  username: string | null;
   role: string;
   created_at: string;
 };
