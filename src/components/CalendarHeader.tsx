@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { formatDayHeading, formatMonthYear, weekDays } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarView } from '@/src/types';
+import { SegmentedControl, WoodLogo } from '@/src/components/ui';
 
 type Props = {
   cursor: Date;
@@ -30,20 +32,30 @@ export function CalendarHeader({
   onProfile,
   staffName,
 }: Props) {
+  const week = weekDays(cursor);
   const title =
     view === 'month'
       ? formatMonthYear(cursor)
       : view === 'week'
-        ? `${weekDays(cursor)[0].getDate()}–${weekDays(cursor)[6].getDate()} ${formatMonthYear(cursor)}`
+        ? `${week[0].getDate()} – ${week[6].getDate()} ${formatMonthYear(cursor)}`
         : formatDayHeading(cursor);
+
+  const subtitle =
+    view === 'week'
+      ? 'Planificamos juntos grandes momentos'
+      : view === 'month'
+        ? 'Organizamos hoy, momentos increíbles mañana'
+        : 'Un gran día en Acuatic Paradise';
 
   return (
     <View style={styles.wrap}>
       <View style={styles.top}>
-        <View>
-          <Text style={styles.brand}>Acuatic Paradise</Text>
-          <Text style={styles.sub}>Calendario del equipo</Text>
-        </View>
+        <WoodLogo size="sm" />
+        <Text style={styles.script} numberOfLines={2}>
+          {view === 'week'
+            ? 'Organización hoy, experiencias inolvidables ♡'
+            : 'Buenas experiencias todo el año ♡'}
+        </Text>
         <Pressable onPress={onProfile} style={styles.avatar}>
           <Text style={styles.avatarText}>
             {(staffName ?? 'E').trim().charAt(0).toUpperCase() || 'E'}
@@ -51,82 +63,120 @@ export function CalendarHeader({
         </Pressable>
       </View>
 
+      <View style={styles.titleCard}>
+        <View style={styles.titleRow}>
+          <View style={styles.calIcon}>
+            <Ionicons name="calendar" size={20} color={colors.teal} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.heading}>Calendario del equipo</Text>
+            <Text style={styles.sub}>{subtitle}</Text>
+          </View>
+          <Pressable onPress={onToday} style={styles.hoyBtn}>
+            <Ionicons name="today-outline" size={14} color={colors.tealDeep} />
+            <Text style={styles.hoyText}>Hoy</Text>
+          </Pressable>
+        </View>
+      </View>
+
       <View style={styles.nav}>
         <Pressable onPress={onPrev} style={styles.navBtn}>
-          <Text style={styles.navGlyph}>‹</Text>
+          <Ionicons name="chevron-back" size={18} color={colors.white} />
         </Pressable>
-        <Pressable onPress={onToday} style={{ flex: 1 }}>
-          <Text style={styles.title} numberOfLines={1}>
-            {title}
-          </Text>
-        </Pressable>
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
         <Pressable onPress={onNext} style={styles.navBtn}>
-          <Text style={styles.navGlyph}>›</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.white} />
         </Pressable>
       </View>
 
-      <View style={styles.switcher}>
-        {VIEWS.map((v) => {
-          const active = v.id === view;
-          return (
-            <Pressable
-              key={v.id}
-              onPress={() => onView(v.id)}
-              style={[styles.tab, active && styles.tabActive]}
-            >
-              <Text style={[styles.tabText, active && styles.tabTextActive]}>{v.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <SegmentedControl options={VIEWS} value={view} onChange={onView} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: colors.navy,
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    gap: 12,
+    paddingHorizontal: 14,
+    paddingBottom: 10,
+    gap: 10,
   },
-  top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { color: colors.aquaLight, fontSize: 18, fontWeight: '800' },
-  sub: { color: colors.skyLight, fontSize: 12, marginTop: 2 },
-  avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.aqua,
+  top: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 8,
   },
-  avatarText: { color: colors.navy, fontWeight: '800', fontSize: 16 },
-  nav: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  navBtn: {
+  script: {
+    flex: 1,
+    color: colors.white,
+    fontStyle: 'italic',
+    fontSize: 11,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowRadius: 3,
+  },
+  avatar: {
     width: 36,
     height: 36,
     borderRadius: 18,
+    backgroundColor: colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
+  avatarText: { color: colors.white, fontWeight: '800', fontSize: 15 },
+  titleCard: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: radius.lg,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.95)',
+  },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  calIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.aquaMist,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heading: { fontSize: 16, fontWeight: '800', color: colors.navy },
+  sub: { fontSize: 11, color: colors.muted, marginTop: 2 },
+  hoyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.aquaMist,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+  },
+  hoyText: { color: colors.tealDeep, fontWeight: '800', fontSize: 12 },
+  nav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.navy,
+    borderRadius: radius.pill,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    gap: 6,
+  },
+  navBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.navySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  navGlyph: { color: colors.white, fontSize: 22, fontWeight: '700', marginTop: -2 },
   title: {
+    flex: 1,
     color: colors.white,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
     textTransform: 'capitalize',
   },
-  switcher: {
-    flexDirection: 'row',
-    backgroundColor: colors.navyMid,
-    borderRadius: radius.pill,
-    padding: 4,
-  },
-  tab: { flex: 1, paddingVertical: 8, borderRadius: radius.pill, alignItems: 'center' },
-  tabActive: { backgroundColor: colors.aqua },
-  tabText: { color: colors.skyMist, fontWeight: '700' },
-  tabTextActive: { color: colors.navy },
 });

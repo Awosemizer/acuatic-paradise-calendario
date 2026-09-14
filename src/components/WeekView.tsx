@@ -1,9 +1,9 @@
 import { parseISO } from 'date-fns';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { isSameDay, weekDays } from '@/src/lib/dates';
+import { Ionicons } from '@expo/vector-icons';
+import { formatTime, isSameDay, weekDays } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
-import { formatTime } from '@/src/lib/dates';
 
 type Props = {
   cursor: Date;
@@ -24,35 +24,58 @@ export function WeekView({ cursor, items, onPressItem, onPressDay }: Props) {
           const dayItems = items.filter((item) => isSameDay(parseISO(item.data.starts_at), day));
           const today = isSameDay(day, new Date());
           return (
-            <View key={day.toISOString()} style={styles.dayBlock}>
+            <View key={day.toISOString()} style={styles.dayCard}>
               <Pressable onPress={() => onPressDay(day)} style={styles.dayHead}>
                 <Text style={[styles.dayName, today && styles.todayText]}>
                   {day.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric' })}
                 </Text>
-                {today && <Text style={styles.todayPill}>Hoy</Text>}
+                {today && (
+                  <View style={styles.todayPill}>
+                    <Text style={styles.todayPillText}>Hoy</Text>
+                  </View>
+                )}
               </Pressable>
               {dayItems.length === 0 ? (
-                <Text style={styles.empty}>Sin citas</Text>
+                <View style={styles.emptyBox}>
+                  <Text style={styles.emptyTitle}>Sin citas</Text>
+                  <Text style={styles.emptyHint}>Un día para planear nuevas experiencias</Text>
+                </View>
               ) : (
                 dayItems.map((item) => {
                   const isVisit = item.kind === 'visit';
                   const title = isVisit ? item.data.client_name : item.data.title;
+                  const kind = isVisit
+                    ? item.data.service_type || 'Visita'
+                    : 'Evento interno';
                   return (
                     <Pressable
                       key={`${item.kind}-${item.data.id}`}
                       onPress={() => onPressItem(item)}
                       style={[
                         styles.rowItem,
-                        { borderLeftColor: isVisit ? colors.aqua : colors.coral },
+                        { borderLeftColor: isVisit ? colors.visit : colors.event },
                       ]}
                     >
+                      <View
+                        style={[
+                          styles.iconCircle,
+                          { backgroundColor: isVisit ? colors.aquaMist : colors.coralMist },
+                        ]}
+                      >
+                        <Ionicons
+                          name={isVisit ? 'people' : 'construct'}
+                          size={16}
+                          color={isVisit ? colors.tealDeep : colors.coral}
+                        />
+                      </View>
                       <Text style={styles.rowTime}>{formatTime(item.data.starts_at)}</Text>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.rowTitle} numberOfLines={1}>
                           {title}
                         </Text>
-                        <Text style={styles.rowKind}>{isVisit ? 'Visita' : 'Evento'}</Text>
+                        <Text style={styles.rowKind}>{kind}</Text>
                       </View>
+                      <Ionicons name="chevron-forward" size={16} color={colors.muted} />
                     </Pressable>
                   );
                 })
@@ -88,7 +111,7 @@ export function WeekView({ cursor, items, onPressItem, onPressDay }: Props) {
                       onPress={() => onPressItem(item)}
                       style={[
                         styles.chip,
-                        { backgroundColor: isVisit ? colors.aquaMist : '#FFE8E0' },
+                        { backgroundColor: isVisit ? colors.aquaMist : colors.coralMist },
                       ]}
                     >
                       <Text style={styles.chipTime}>{formatTime(item.data.starts_at)}</Text>
@@ -108,33 +131,51 @@ export function WeekView({ cursor, items, onPressItem, onPressDay }: Props) {
 }
 
 const styles = StyleSheet.create({
-  listPad: { padding: 16, paddingBottom: 120 },
-  dayBlock: { marginBottom: 18 },
-  dayHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  listPad: { padding: 12, paddingBottom: 120 },
+  dayCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  dayHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   dayName: { fontSize: 16, fontWeight: '800', color: colors.ink, textTransform: 'capitalize' },
-  todayText: { color: colors.sky },
+  todayText: { color: colors.tealDeep },
   todayPill: {
-    backgroundColor: colors.aqua,
-    color: colors.navy,
-    fontWeight: '800',
-    fontSize: 11,
+    backgroundColor: colors.teal,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
-    overflow: 'hidden',
   },
-  empty: { color: colors.muted, fontSize: 13, marginLeft: 4 },
+  todayPillText: { color: colors.white, fontWeight: '800', fontSize: 11 },
+  emptyBox: {
+    backgroundColor: colors.skyMist,
+    borderRadius: radius.md,
+    padding: 14,
+    alignItems: 'center',
+  },
+  emptyTitle: { fontWeight: '800', color: colors.navySoft },
+  emptyHint: { color: colors.muted, fontSize: 12, marginTop: 4, textAlign: 'center' },
   rowItem: {
     flexDirection: 'row',
-    gap: 10,
-    backgroundColor: colors.white,
-    borderRadius: radius.sm,
-    padding: 12,
+    gap: 8,
+    backgroundColor: colors.offWhite,
+    borderRadius: radius.md,
+    padding: 10,
     marginBottom: 6,
     borderLeftWidth: 4,
     alignItems: 'center',
   },
-  rowTime: { width: 48, fontWeight: '800', color: colors.navySoft },
+  iconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowTime: { width: 42, fontWeight: '800', color: colors.navySoft, fontSize: 13 },
   rowTitle: { fontWeight: '700', color: colors.ink },
   rowKind: { fontSize: 12, color: colors.muted },
   gridPad: { padding: 12, paddingBottom: 120 },
@@ -152,7 +193,7 @@ const styles = StyleSheet.create({
   colHead: { alignItems: 'center', marginBottom: 8 },
   colDow: { fontSize: 11, fontWeight: '700', color: colors.muted, textTransform: 'uppercase' },
   colNum: { fontSize: 20, fontWeight: '800', color: colors.ink },
-  todayNum: { color: colors.sky },
+  todayNum: { color: colors.tealDeep },
   chip: { borderRadius: 8, padding: 8, marginBottom: 6 },
   chipTime: { fontSize: 10, fontWeight: '800', color: colors.navySoft },
   chipTitle: { fontSize: 12, fontWeight: '700', color: colors.ink },

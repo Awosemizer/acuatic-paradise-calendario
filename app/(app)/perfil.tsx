@@ -9,8 +9,7 @@ export default function PerfilScreen() {
   const router = useRouter();
   const { profile, user, signOut } = useAuth();
 
-  const username =
-    profile?.username || emailToUsername(user?.email) || null;
+  const username = profile?.username || emailToUsername(user?.email) || null;
   const displayName = profile?.full_name || username || 'Personal del salón';
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -20,7 +19,7 @@ export default function PerfilScreen() {
         <Pressable onPress={() => router.back()}>
           <Text style={styles.back}>‹ Volver</Text>
         </Pressable>
-        <Text style={styles.title}>Equipo</Text>
+        <Text style={styles.title}>Perfil</Text>
       </View>
 
       <View style={styles.card}>
@@ -33,8 +32,8 @@ export default function PerfilScreen() {
       </View>
 
       <Text style={styles.note}>
-        Las tres personas del equipo ven y editan las mismas visitas y eventos. Los cambios se
-        sincronizan en tiempo real.
+        Todo el equipo ve y edita las mismas visitas y eventos. Los cambios se sincronizan en tiempo
+        real.
       </Text>
 
       <Pressable

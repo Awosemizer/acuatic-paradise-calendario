@@ -1,5 +1,6 @@
 import { parseISO } from 'date-fns';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { isSameDay, isSameMonth, monthGrid } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
@@ -63,34 +64,44 @@ export function MonthView({ cursor, selected, items, onSelectDay, onPressItem }:
                 {day.getDate()}
               </Text>
               <View style={styles.dots}>
-                {visits > 0 && <View style={[styles.dot, { backgroundColor: colors.aqua }]} />}
-                {events > 0 && <View style={[styles.dot, { backgroundColor: colors.coral }]} />}
+                {visits > 0 && <View style={[styles.dot, { backgroundColor: colors.visit }]} />}
+                {events > 0 && <View style={[styles.dot, { backgroundColor: colors.event }]} />}
               </View>
             </Pressable>
           );
         })}
       </View>
 
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: colors.aqua }]} />
-          <Text style={styles.legendText}>Visitas</Text>
+      <View style={styles.legendRow}>
+        <View style={styles.legend}>
+          <View style={styles.legendItem}>
+            <View style={[styles.dot, { backgroundColor: colors.visit }]} />
+            <Text style={styles.legendText}>Visitas</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.dot, { backgroundColor: colors.event }]} />
+            <Text style={styles.legendText}>Eventos</Text>
+          </View>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: colors.coral }]} />
-          <Text style={styles.legendText}>Eventos</Text>
+        <Text style={styles.agendaLink}>Ver agenda completa →</Text>
+      </View>
+
+      <View style={styles.dayHead}>
+        <Text style={styles.listTitle}>
+          {selected.toLocaleDateString('es-MX', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          })}
+        </Text>
+        <View style={styles.sunRow}>
+          <Ionicons name="sunny" size={14} color={colors.gold} />
+          <Text style={styles.sunText}>Un gran día en Acuatic Paradise</Text>
         </View>
       </View>
 
-      <Text style={styles.listTitle}>
-        {selected.toLocaleDateString('es-MX', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-        })}
-      </Text>
       {selectedItems.length === 0 ? (
-        <EmptyState message="Nada agendado este día." />
+        <EmptyState message="Sin citas este día." />
       ) : (
         selectedItems.map((item) => (
           <CalendarItemCard
@@ -122,21 +133,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
-  cellSel: { backgroundColor: colors.navy },
+  cellSel: { backgroundColor: colors.tealDeep },
   cellToday: { backgroundColor: colors.aquaMist },
   num: { fontSize: 14, fontWeight: '700', color: colors.ink },
   numMuted: { color: '#A8B6C3' },
   numSel: { color: colors.white },
   dots: { flexDirection: 'row', gap: 3, height: 8, marginTop: 2 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  legend: { flexDirection: 'row', gap: 16, marginVertical: 12, paddingHorizontal: 4 },
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 12,
+    paddingHorizontal: 4,
+  },
+  legend: { flexDirection: 'row', gap: 16 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendText: { color: colors.muted, fontSize: 12, fontWeight: '600' },
+  agendaLink: { color: colors.tealDeep, fontWeight: '700', fontSize: 12 },
+  dayHead: { marginBottom: 8 },
   listTitle: {
     fontSize: 16,
     fontWeight: '800',
     color: colors.ink,
     textTransform: 'capitalize',
-    marginBottom: 8,
   },
+  sunRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  sunText: { color: colors.muted, fontSize: 12, fontStyle: 'italic' },
 });

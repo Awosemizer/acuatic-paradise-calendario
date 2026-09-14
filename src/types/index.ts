@@ -38,3 +38,12 @@ export type CalendarItem =
   | { kind: 'event'; data: CalendarEvent };
 
 export type CalendarView = 'day' | 'week' | 'month';
+
+export type Task = {
+  id: string;
+  title: string;
+  done: boolean;
+  due_at: string | null;
+  created_by: string | null;
+  created_at: string;
+};

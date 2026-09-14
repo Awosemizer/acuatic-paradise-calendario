@@ -73,8 +73,8 @@ export function DayView({ date, items, onPressItem }: Props) {
                 {
                   top: topFor(item.data.starts_at),
                   height: heightFor(item.data.duration_minutes),
-                  backgroundColor: isVisit ? colors.aquaMist : '#FFE8E0',
-                  borderLeftColor: isVisit ? colors.aqua : colors.coral,
+                  backgroundColor: isVisit ? colors.aquaMist : colors.coralMist,
+                  borderLeftColor: isVisit ? colors.visit : colors.event,
                 },
               ]}
             >
@@ -96,7 +96,7 @@ export function DayView({ date, items, onPressItem }: Props) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: colors.offWhite },
+  scroll: { flex: 1, backgroundColor: 'transparent' },
   hourRow: {
     position: 'absolute',
     left: 0,

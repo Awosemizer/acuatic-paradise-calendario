@@ -2,7 +2,7 @@
 
 Calendario compartido del equipo para **Acuatic Paradise** (salón de eventos con alberca en Pachuca). Una sola app en **Expo + React Native** que corre en **web** y se empaqueta como **APK de Android**. El backend es **Supabase** (Auth, Postgres y Realtime).
 
-Las tres personas del staff ven y editan las **mismas** visitas y eventos. Los cambios se reflejan al instante.
+Todo el staff ve y edita las **mismas** visitas y eventos. Los cambios se reflejan al instante.
 
 ## Qué incluye
 

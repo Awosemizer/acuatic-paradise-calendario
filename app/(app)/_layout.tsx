@@ -15,6 +15,13 @@ export default function AppGroupLayout() {
         headerShown: false,
         contentStyle: { backgroundColor: colors.offWhite },
       }}
-    />
+    >
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="visita/nueva" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="visita/[id]" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="evento/nuevo" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="evento/[id]" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="perfil" options={{ presentation: 'modal' }} />
+    </Stack>
   );
 }
