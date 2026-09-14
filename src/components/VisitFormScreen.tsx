@@ -123,7 +123,7 @@ export function VisitFormScreen({ visitId }: { visitId?: string }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <KeyboardScreen contentContainerStyle={styles.pad} bottomPadding={120}>
+      <KeyboardScreen contentContainerStyle={styles.pad} bottomPadding={120} extraScrollHeight={120}>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.back}>‹ Calendario</Text>
         </Pressable>

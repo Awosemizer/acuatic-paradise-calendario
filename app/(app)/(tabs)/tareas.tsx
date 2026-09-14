@@ -1,22 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/src/lib/supabase';
 import { colors, radius, shadow } from '@/src/theme';
 import {
-  FadeSlide,
   FancyTitle,
   GlassCard,
   ScreenFocusFade,
@@ -131,94 +128,100 @@ export default function TareasScreen() {
 
   return (
     <TropicalBackground>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-        keyboardVerticalOffset={insets.top + 8}
-      >
-        <ScreenFocusFade>
-          <View style={[styles.head, { paddingTop: insets.top + 8 }]}>
-            <WoodLogo size="sm" />
-            <FancyTitle size={28} tilt={-5} style={styles.title}>
-              Tareas
-            </FancyTitle>
-            <Text style={styles.sub}>
-              {scope === 'personal' ? 'Solo tú las ves' : 'Visibles para todo el equipo'}
-            </Text>
-          </View>
+      <ScreenFocusFade style={styles.flex}>
+        <KeyboardAwareFlatList
+          style={styles.flex}
+          data={loading ? [] : visible}
+          keyExtractor={(item) => item.id}
+          enableOnAndroid
+          enableAutomaticScroll
+          extraScrollHeight={100}
+          keyboardOpeningTime={0}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+          ListHeaderComponent={
+            <View>
+              <View style={[styles.head, { paddingTop: insets.top + 8 }]}>
+                <WoodLogo size="sm" />
+                <FancyTitle size={28} tilt={-5} style={styles.title}>
+                  Tareas
+                </FancyTitle>
+                <Text style={styles.sub}>
+                  {scope === 'personal' ? 'Solo tú las ves' : 'Visibles para todo el equipo'}
+                </Text>
+              </View>
 
-          <View style={styles.tabs}>
-            <SegmentedControl
-              options={[
-                { id: 'shared', label: 'Equipo' },
-                { id: 'personal', label: 'Personales' },
-              ]}
-              value={scope}
-              onChange={setScope}
-            />
-          </View>
+              <View style={styles.tabs}>
+                <SegmentedControl
+                  options={[
+                    { id: 'shared', label: 'Equipo' },
+                    { id: 'personal', label: 'Personales' },
+                  ]}
+                  value={scope}
+                  onChange={setScope}
+                />
+              </View>
 
-          <View style={styles.composer}>
-            <TextInput
-              value={title}
-              onChangeText={setTitle}
-              placeholder={scope === 'personal' ? 'Nueva tarea personal…' : 'Nueva tarea del equipo…'}
-              placeholderTextColor={colors.muted}
-              style={styles.input}
-              onSubmitEditing={addTask}
-            />
-            <Pressable onPress={addTask} style={styles.addBtn} disabled={saving}>
-              <Ionicons name="add" size={26} color={colors.white} />
-            </Pressable>
-          </View>
+              <View style={styles.composer}>
+                <TextInput
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder={scope === 'personal' ? 'Nueva tarea personal…' : 'Nueva tarea del equipo…'}
+                  placeholderTextColor={colors.muted}
+                  style={styles.input}
+                  onSubmitEditing={addTask}
+                />
+                <Pressable onPress={addTask} style={styles.addBtn} disabled={saving}>
+                  <Ionicons name="add" size={26} color={colors.white} />
+                </Pressable>
+              </View>
 
-          {error ? (
-            <GlassCard style={{ marginHorizontal: 16, marginBottom: 8 }} padding={12}>
-              <Text style={styles.error}>{error}</Text>
-            </GlassCard>
-          ) : null}
+              {error ? (
+                <GlassCard style={{ marginHorizontal: 16, marginBottom: 8 }} padding={12}>
+                  <Text style={styles.error}>{error}</Text>
+                </GlassCard>
+              ) : null}
 
-          {loading ? (
-            <ActivityIndicator color={colors.white} style={{ marginTop: 30 }} />
-          ) : (
-            <FadeSlide animKey={scope} style={{ flex: 1 }}>
-              <FlatList
-                data={visible}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-                keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="on-drag"
-                ListEmptyComponent={
-                  <GlassCard padding={20}>
-                    <Text style={styles.empty}>
-                      {scope === 'personal'
-                        ? 'Sin tareas personales. Agrega una solo para ti.'
-                        : 'Sin tareas de equipo. Agrega la primera.'}
-                    </Text>
-                  </GlassCard>
-                }
-                renderItem={({ item }) => (
-                  <View style={[styles.row, shadow.card, item.done && styles.rowDone]}>
-                    <Pressable onPress={() => toggle(item)} hitSlop={8}>
-                      <Ionicons
-                        name={item.done ? 'checkmark-circle' : 'ellipse-outline'}
-                        size={26}
-                        color={item.done ? colors.success : colors.teal}
-                      />
-                    </Pressable>
-                    <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={3}>
-                      {item.title}
-                    </Text>
-                    <Pressable onPress={() => remove(item)} hitSlop={8}>
-                      <Ionicons name="trash-outline" size={20} color={colors.muted} />
-                    </Pressable>
-                  </View>
-                )}
-              />
-            </FadeSlide>
+              {loading ? (
+                <ActivityIndicator color={colors.white} style={{ marginTop: 30 }} />
+              ) : null}
+            </View>
+          }
+          ListEmptyComponent={
+            loading ? null : (
+              <View style={{ padding: 16 }}>
+                <GlassCard padding={20}>
+                  <Text style={styles.empty}>
+                    {scope === 'personal'
+                      ? 'Sin tareas personales. Agrega una solo para ti.'
+                      : 'Sin tareas de equipo. Agrega la primera.'}
+                  </Text>
+                </GlassCard>
+              </View>
+            )
+          }
+          renderItem={({ item }) => (
+            <View style={{ paddingHorizontal: 16 }}>
+              <View style={[styles.row, shadow.card, item.done && styles.rowDone]}>
+                <Pressable onPress={() => toggle(item)} hitSlop={8}>
+                  <Ionicons
+                    name={item.done ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={26}
+                    color={item.done ? colors.success : colors.teal}
+                  />
+                </Pressable>
+                <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={3}>
+                  {item.title}
+                </Text>
+                <Pressable onPress={() => remove(item)} hitSlop={8}>
+                  <Ionicons name="trash-outline" size={20} color={colors.muted} />
+                </Pressable>
+              </View>
+            </View>
           )}
-        </ScreenFocusFade>
-      </KeyboardAvoidingView>
+        />
+      </ScreenFocusFade>
     </TropicalBackground>
   );
 }

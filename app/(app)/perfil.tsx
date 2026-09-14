@@ -133,7 +133,7 @@ export default function PerfilScreen() {
         <Text style={styles.title}>Editar perfil</Text>
       </View>
 
-      <KeyboardScreen contentContainerStyle={{ paddingBottom: 24 }} bottomPadding={120}>
+      <KeyboardScreen contentContainerStyle={{ paddingBottom: 24 }} bottomPadding={120} extraScrollHeight={120}>
         <View style={styles.card}>
           <Pressable onPress={pickPhoto} style={styles.avatarWrap}>
             <Avatar name={displayName} uri={preview} size={96} />

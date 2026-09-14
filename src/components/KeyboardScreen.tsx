@@ -1,70 +1,65 @@
-import { forwardRef, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StyleSheet,
   type ScrollViewProps,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
-  /** Extra offset above the keyboard (defaults to safe-area top + 8). */
+  /** Kept for API compat; unused with KeyboardAwareScrollView. */
   keyboardVerticalOffset?: number;
-  /** Extra scroll padding under content when keyboard may be open. */
+  /** Extra scroll padding under content. */
   bottomPadding?: number;
+  extraScrollHeight?: number;
 } & Pick<ScrollViewProps, 'keyboardShouldPersistTaps' | 'keyboardDismissMode' | 'onScroll'>;
 
 /**
- * Reusable keyboard-safe screen: KeyboardAvoidingView (padding on iOS + Android)
- * wrapping a ScrollView so focused TextInputs stay visible.
- * Place inside TropicalBackground / SafeAreaView — not outside ImageBackground.
+ * Keyboard-safe screen for Expo RN Android + iOS.
+ * Uses KeyboardAwareScrollView with enableOnAndroid so focused TextInputs
+ * (e.g. date/time/notes, perfil rol) scroll above the soft keyboard.
+ * Pair with android.softwareKeyboardLayoutMode: "resize" / adjustResize.
  */
-export const KeyboardScreen = forwardRef<ScrollView, Props>(function KeyboardScreen(
-  {
-    children,
-    style,
-    contentContainerStyle,
-    keyboardVerticalOffset,
-    bottomPadding = 80,
-    keyboardShouldPersistTaps = 'handled',
-    keyboardDismissMode = 'on-drag',
-    onScroll,
-  },
-  ref,
-) {
+export function KeyboardScreen({
+  children,
+  style,
+  contentContainerStyle,
+  bottomPadding = 80,
+  extraScrollHeight = 100,
+  keyboardShouldPersistTaps = 'handled',
+  keyboardDismissMode = 'on-drag',
+  onScroll,
+}: Props) {
   const insets = useSafeAreaInsets();
-  const offset = keyboardVerticalOffset ?? insets.top + 8;
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={[styles.flex, style]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-      keyboardVerticalOffset={offset}
+      contentContainerStyle={[
+        styles.content,
+        { paddingBottom: Math.max(bottomPadding, 40) + insets.bottom },
+        contentContainerStyle,
+      ]}
+      enableOnAndroid
+      enableAutomaticScroll
+      extraScrollHeight={extraScrollHeight}
+      extraHeight={extraScrollHeight}
+      keyboardOpeningTime={0}
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+      keyboardDismissMode={keyboardDismissMode}
+      showsVerticalScrollIndicator={false}
+      enableResetScrollToCoords={false}
+      onScroll={onScroll}
     >
-      <ScrollView
-        ref={ref}
-        style={styles.flex}
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: Math.max(bottomPadding, 40) + insets.bottom },
-          contentContainerStyle,
-        ]}
-        keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-        keyboardDismissMode={keyboardDismissMode}
-        onScroll={onScroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {children}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      {children}
+    </KeyboardAwareScrollView>
   );
-});
+}
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },

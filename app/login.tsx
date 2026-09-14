@@ -2,10 +2,7 @@ import { Redirect } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -17,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/src/context/AuthContext';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { colors, fill, fonts, radius, shadow } from '@/src/theme';
+import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import {
   FancyTitle,
   PasswordInput,
@@ -34,7 +32,6 @@ export default function LoginScreen() {
   const slide = useRef(new Animated.Value(40)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
-  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     Animated.parallel([
@@ -50,13 +47,6 @@ export default function LoginScreen() {
   }, [slide, opacity, pulse]);
 
   if (session) return <Redirect href="/(app)/(tabs)" />;
-
-  function ensureFieldVisible() {
-    // Bring focused field into view on Android when adjustResize + ImageBackground fight.
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-    });
-  }
 
   async function onSubmit() {
     setError(null);
@@ -79,113 +69,89 @@ export default function LoginScreen() {
         />
       </Animated.View>
 
-      <KeyboardAvoidingView
+      <KeyboardScreen
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-        keyboardVerticalOffset={insets.top + 8}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 40 },
+        ]}
+        bottomPadding={40}
+        extraScrollHeight={120}
       >
-        <ScrollView
-          ref={scrollRef}
-          contentContainerStyle={[
-            styles.scroll,
-            { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 80 },
-          ]}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-        >
-          <WoodLogo size="lg" style={styles.logo} />
+        <WoodLogo size="lg" style={styles.logo} />
 
-          <Animated.View style={{ opacity, transform: [{ translateY: slide }] }}>
-            <View style={[styles.card, shadow.card]}>
-              <View style={styles.cardIcon}>
-                <Ionicons name="calendar" size={28} color={colors.teal} />
-              </View>
-              <FancyTitle color={colors.navy} size={28} tilt={-5} style={styles.welcome}>
-                Bienvenido
-              </FancyTitle>
-              <Text style={styles.subtitle}>Calendario compartido del equipo</Text>
-
-              {!isSupabaseConfigured && (
-                <View style={styles.warn}>
-                  <Text style={styles.warnTitle}>Falta configurar Supabase</Text>
-                  <Text style={styles.warnText}>
-                    Crea un archivo .env con EXPO_PUBLIC_SUPABASE_URL y
-                    EXPO_PUBLIC_SUPABASE_ANON_KEY. Consulta el README.
-                  </Text>
-                </View>
-              )}
-
-              <Text style={styles.label}>
-                <Ionicons name="person-outline" size={14} color={colors.navySoft} /> Usuario
-              </Text>
-              <View style={styles.inputRow}>
-                <Ionicons name="person-outline" size={18} color={colors.teal} style={{ marginRight: 8 }} />
-                <TextInput
-                  value={username}
-                  onChangeText={setUsername}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder="Usuario"
-                  placeholderTextColor={colors.muted}
-                  style={styles.input}
-                  onFocus={ensureFieldVisible}
-                />
-              </View>
-
-              <Text style={styles.label}>
-                <Ionicons name="lock-closed-outline" size={14} color={colors.navySoft} /> Contraseña
-              </Text>
-              <PasswordInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
-                onSubmitEditing={onSubmit}
-                onFocus={ensureFieldVisible}
-              />
-
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-
-              <Pressable
-                onPress={onSubmit}
-                disabled={busy || !isSupabaseConfigured}
-                style={({ pressed }) => [
-                  styles.btnWrap,
-                  (busy || !isSupabaseConfigured) && { opacity: 0.6 },
-                  pressed && { opacity: 0.9 },
-                ]}
-              >
-                <LinearGradient
-                  colors={[colors.teal, colors.tealDeep, colors.sky]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.btn}
-                >
-                  <View style={styles.btnArrow}>
-                    <Ionicons name="arrow-forward" size={18} color={colors.tealDeep} />
-                  </View>
-                  <Text style={styles.btnText}>{busy ? 'Entrando…' : 'Entrar'}</Text>
-                </LinearGradient>
-              </Pressable>
+        <Animated.View style={{ opacity, transform: [{ translateY: slide }] }}>
+          <View style={[styles.card, shadow.card]}>
+            <View style={styles.cardIcon}>
+              <Ionicons name="calendar" size={28} color={colors.teal} />
             </View>
-          </Animated.View>
+            <FancyTitle color={colors.navy} size={28} tilt={-5} style={styles.welcome}>
+              Bienvenido
+            </FancyTitle>
+            <Text style={styles.subtitle}>Calendario compartido del equipo</Text>
 
-          <View style={styles.pillRow}>
-            {[
-              { icon: 'calendar-outline' as const, label: 'Organiza' },
-              { icon: 'people-outline' as const, label: 'Coordina' },
-              { icon: 'star-outline' as const, label: 'Haz que suceda' },
-            ].map((p) => (
-              <View key={p.label} style={styles.pill}>
-                <View style={styles.pillCircle}>
-                  <Ionicons name={p.icon} size={18} color={colors.white} />
-                </View>
-                <Text style={styles.pillLabel}>{p.label}</Text>
+            {!isSupabaseConfigured && (
+              <View style={styles.warn}>
+                <Text style={styles.warnTitle}>Falta configurar Supabase</Text>
+                <Text style={styles.warnText}>
+                  Crea un archivo .env con EXPO_PUBLIC_SUPABASE_URL y
+                  EXPO_PUBLIC_SUPABASE_ANON_KEY. Consulta el README.
+                </Text>
               </View>
-            ))}
-          </View>
+            )}
 
-        </ScrollView>
-      </KeyboardAvoidingView>
+            <Text style={styles.label}>
+              <Ionicons name="person-outline" size={14} color={colors.navySoft} /> Usuario
+            </Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="person-outline" size={18} color={colors.teal} style={{ marginRight: 8 }} />
+              <TextInput
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="Usuario"
+                placeholderTextColor={colors.muted}
+                style={styles.input}
+              />
+            </View>
+
+            <Text style={styles.label}>
+              <Ionicons name="lock-closed-outline" size={14} color={colors.navySoft} /> Contraseña
+            </Text>
+            <PasswordInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              onSubmitEditing={onSubmit}
+            />
+
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            <Pressable
+              onPress={onSubmit}
+              disabled={busy || !isSupabaseConfigured}
+              style={({ pressed }) => [
+                styles.btnWrap,
+                (busy || !isSupabaseConfigured) && { opacity: 0.6 },
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <LinearGradient
+                colors={[colors.teal, colors.tealDeep, colors.sky]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.btn}
+              >
+                <View style={styles.btnArrow}>
+                  <Ionicons name="arrow-forward" size={18} color={colors.tealDeep} />
+                </View>
+                <Text style={styles.btnText}>{busy ? 'Entrando…' : 'Entrar'}</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </Animated.View>
+      </KeyboardScreen>
     </TropicalBackground>
   );
 }
@@ -271,29 +237,4 @@ const styles = StyleSheet.create({
   },
   warnTitle: { fontWeight: '800', color: '#9A6700', marginBottom: 4 },
   warnText: { color: '#7A5A00', fontSize: 13, lineHeight: 18 },
-  pillRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 22,
-    marginBottom: 12,
-  },
-  pill: { alignItems: 'center', gap: 6, maxWidth: 100 },
-  pillCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(11,31,58,0.35)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillLabel: {
-    color: colors.white,
-    fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowRadius: 3,
-  },
 });
