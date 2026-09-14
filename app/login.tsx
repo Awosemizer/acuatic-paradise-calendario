@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/src/context/AuthContext';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
-import { colors, fill, radius, shadow } from '@/src/theme';
+import { colors, fill, fonts, radius, shadow } from '@/src/theme';
 import {
   FancyTitle,
   PasswordInput,
@@ -206,12 +206,14 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: colors.muted,
+    fontFamily: fonts.regular,
     textAlign: 'center',
     marginTop: 4,
     marginBottom: 16,
     fontSize: 14,
   },
   label: {
+    fontFamily: fonts.semiBold,
     fontWeight: '700',
     color: colors.navySoft,
     marginBottom: 6,
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  btnText: { color: colors.white, fontWeight: '800', fontSize: 17 },
+  btnText: { color: colors.white, fontFamily: fonts.bold, fontWeight: '800', fontSize: 17 },
   warn: {
     backgroundColor: '#FFF3D6',
     borderRadius: radius.sm,

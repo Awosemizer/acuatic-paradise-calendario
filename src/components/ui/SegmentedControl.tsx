@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius } from '@/src/theme';
+import { colors, fonts, radius } from '@/src/theme';
 
 type Option<T extends string> = { id: T; label: string };
 
@@ -44,6 +44,6 @@ const styles = StyleSheet.create({
   tabActive: {
     backgroundColor: colors.teal,
   },
-  text: { color: colors.navySoft, fontWeight: '700', fontSize: 14 },
+  text: { color: colors.navySoft, fontFamily: fonts.semiBold, fontWeight: '700', fontSize: 14 },
   textActive: { color: colors.white },
 });

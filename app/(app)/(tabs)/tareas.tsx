@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -54,16 +54,34 @@ export default function TareasScreen() {
     setLoading(false);
   }, []);
 
+  const loadRef = useRef(load);
+  useEffect(() => {
+    loadRef.current = load;
+  }, [load]);
+
   useEffect(() => {
     load();
-    const channel = supabase
-      .channel('tareas-equipo')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => load())
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [load]);
+
+  useEffect(() => {
+    const topic = `tareas-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      channel = supabase
+        .channel(topic)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
+          void loadRef.current();
+        });
+      channel.subscribe();
+    } catch (err) {
+      console.warn('Realtime tareas no disponible', err);
+    }
+    return () => {
+      if (channel) {
+        void supabase.removeChannel(channel);
+      }
+    };
+  }, []);
 
   const visible = useMemo(() => {
     if (scope === 'personal') {

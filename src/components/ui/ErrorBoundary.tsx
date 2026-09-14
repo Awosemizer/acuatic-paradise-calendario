@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius } from '@/src/theme';
+import { colors, fonts, radius, shadow } from '@/src/theme';
 
 type Props = {
   children: ReactNode;
@@ -24,11 +24,13 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <View style={styles.wrap}>
-          <Text style={styles.title}>{this.props.fallbackTitle ?? 'Algo salió mal'}</Text>
-          <Text style={styles.body}>{this.state.error.message}</Text>
-          <Pressable onPress={() => this.setState({ error: null })} style={styles.btn}>
-            <Text style={styles.btnText}>Reintentar</Text>
-          </Pressable>
+          <View style={[styles.card, shadow.card]}>
+            <Text style={styles.title}>{this.props.fallbackTitle ?? 'Algo salió mal'}</Text>
+            <Text style={styles.body}>{this.state.error.message}</Text>
+            <Pressable onPress={() => this.setState({ error: null })} style={styles.btn}>
+              <Text style={styles.btnText}>Reintentar</Text>
+            </Pressable>
+          </View>
         </View>
       );
     }
@@ -42,10 +44,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    gap: 10,
   },
-  title: { color: colors.navy, fontWeight: '800', fontSize: 18, textAlign: 'center' },
-  body: { color: colors.muted, fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  card: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: colors.glassStrong,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.75)',
+    padding: 20,
+    gap: 10,
+    alignItems: 'center',
+  },
+  title: {
+    color: colors.ink,
+    fontFamily: fonts.bold,
+    fontWeight: '800',
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  body: {
+    color: colors.muted,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
   btn: {
     marginTop: 8,
     backgroundColor: colors.teal,
@@ -53,5 +77,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
   },
-  btnText: { color: colors.white, fontWeight: '800' },
+  btnText: {
+    color: colors.white,
+    fontFamily: fonts.bold,
+    fontWeight: '800',
+  },
 });

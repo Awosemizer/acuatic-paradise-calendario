@@ -11,7 +11,7 @@ import { ErrorBoundary, SplashFAB, TropicalBackground } from '@/src/components/u
 import { useAuth } from '@/src/context/AuthContext';
 import { useCalendarData } from '@/src/hooks/useCalendarData';
 import { shiftCursor } from '@/src/lib/dates';
-import { colors } from '@/src/theme';
+import { colors, fonts } from '@/src/theme';
 import type { CalendarItem, CalendarView } from '@/src/types';
 
 export default function CalendarioScreen() {
@@ -133,12 +133,16 @@ const styles = StyleSheet.create({
   },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   error: {
-    color: colors.danger,
+    color: colors.ink,
+    fontFamily: fonts.medium,
     textAlign: 'center',
-    padding: 8,
-    backgroundColor: '#FDE8E8',
+    padding: 12,
+    backgroundColor: colors.glassStrong,
     marginHorizontal: 12,
-    borderRadius: 10,
+    borderRadius: 14,
     marginBottom: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.8)',
+    overflow: 'hidden',
   },
 });

@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Text, View, type ImageStyle, type ViewStyle } from 'react-native';
-import { colors } from '@/src/theme';
+import { colors, fonts } from '@/src/theme';
 
 const logoSrc = require('@/assets/brand/logo-oficial.png');
 
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     borderColor: '#8B5A2B',
   },
   icon: { fontSize: 22 },
-  brand: { color: colors.white, fontWeight: '800', fontSize: 16 },
+  brand: { color: colors.white, fontFamily: fonts.bold, fontWeight: '800', fontSize: 16 },
   sub: {
     color: 'rgba(255,255,255,0.85)',
     fontSize: 10,

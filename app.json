@@ -3,7 +3,7 @@
     "name": "Acuatic Paradise",
     "slug": "acuatic-paradise-calendario",
     "scheme": "acuaticparadise",
-    "version": "1.0.0",
+    "version": "1.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -41,7 +41,8 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

@@ -8,7 +8,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { colors } from '@/src/theme';
+import { colors, fonts } from '@/src/theme';
 
 type Props = {
   children: string;
@@ -63,7 +63,12 @@ export function FancyTitle({
 
   return (
     <Animated.Text
-      style={[styles.title, { color, fontSize: size, lineHeight: size * 1.2 }, animStyle, style]}
+      style={[
+        styles.title,
+        { color, fontSize: size, lineHeight: size * 1.25, fontFamily: fonts.display },
+        animStyle,
+        style,
+      ]}
     >
       {children}
     </Animated.Text>
@@ -72,9 +77,8 @@ export function FancyTitle({
 
 const styles = StyleSheet.create({
   title: {
-    fontWeight: '800',
-    letterSpacing: 0.2,
-    textShadowColor: 'rgba(0, 0, 0, 0.28)',
+    letterSpacing: 0.4,
+    textShadowColor: 'rgba(0, 0, 0, 0.35)',
     textShadowOffset: { width: 1, height: 2 },
     textShadowRadius: 6,
   },

@@ -8,3 +8,4 @@ export { SplashFAB } from './SplashFAB';
 export { WaveTabBar } from './WaveTabBar';
 export { FancyTitle } from './FancyTitle';
 export { ErrorBoundary } from './ErrorBoundary';
+export { AppText, textStyles } from './AppText';

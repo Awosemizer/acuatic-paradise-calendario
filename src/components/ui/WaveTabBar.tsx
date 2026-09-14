@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
-import { colors } from '@/src/theme';
+import { colors, fonts } from '@/src/theme';
 
 type TabRoute = { key: string; name: string; params?: object };
 
@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
   label: {
     color: 'rgba(255,255,255,0.55)',
     fontSize: 10,
+    fontFamily: fonts.semiBold,
     fontWeight: '700',
   },
   labelActive: {

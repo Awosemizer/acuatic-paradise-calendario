@@ -14,7 +14,7 @@ import { parseISO } from 'date-fns';
 import { useAuth } from '@/src/context/AuthContext';
 import { useCalendarData } from '@/src/hooks/useCalendarData';
 import { formatChipDate, formatDayHeading, isSameDay } from '@/src/lib/dates';
-import { colors, radius, shadow } from '@/src/theme';
+import { colors, fonts, radius, shadow } from '@/src/theme';
 import { FancyTitle, GlassCard, TropicalBackground, WoodLogo } from '@/src/components/ui';
 import { CalendarItemCard } from '@/src/components/CalendarItemCard';
 import type { CalendarItem } from '@/src/types';
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   hero: { marginBottom: 16 },
-  heroTitle: { fontSize: 22, fontWeight: '800', color: colors.navy },
+  heroTitle: { fontSize: 22, fontFamily: fonts.bold, fontWeight: '800', color: colors.navy },
   heroDate: { color: colors.navySoft, textTransform: 'capitalize', marginTop: 2 },
   stats: { flexDirection: 'row', gap: 12, marginTop: 14 },
   stat: {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statEvent: { backgroundColor: colors.coralMist },
-  statNum: { fontSize: 24, fontWeight: '800', color: colors.tealDeep },
+  statNum: { fontSize: 24, fontFamily: fonts.bold, fontWeight: '800', color: colors.tealDeep },
   statLabel: { color: colors.muted, fontWeight: '700', fontSize: 12, marginTop: 2 },
   sectionTitle: { marginBottom: 10, marginTop: 8, marginLeft: 4 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: radius.pill,
   },
-  actionText: { color: colors.white, fontWeight: '800', fontSize: 13 },
+  actionText: { color: colors.white, fontFamily: fonts.bold, fontWeight: '800', fontSize: 13 },
   empty: { color: colors.muted, textAlign: 'center' },
   when: { color: colors.white, fontSize: 11, marginTop: -4, marginBottom: 10, marginLeft: 4 },
 });

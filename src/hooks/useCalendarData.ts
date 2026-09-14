@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { rangeForView } from '@/src/lib/dates';
 import { supabase } from '@/src/lib/supabase';
 import type { CalendarEvent, CalendarItem, CalendarView, Visit } from '@/src/types';
@@ -40,26 +40,43 @@ export function useCalendarData(cursor: Date, view: CalendarView) {
     setLoading(false);
   }, [start, end]);
 
+  const loadRef = useRef(load);
+  useEffect(() => {
+    loadRef.current = load;
+  }, [load]);
+
   useEffect(() => {
     setLoading(true);
     load();
   }, [load]);
 
+  // Subscribe once on mount. Never put `load` in deps — that recreated the
+  // channel and tried to add postgres_changes callbacks after subscribe().
   useEffect(() => {
-    const channel = supabase
-      .channel('calendario-salon')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'visits' }, () => {
-        load();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
-        load();
-      })
-      .subscribe();
+    const topic = `calendario-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase
+        .channel(topic)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'visits' }, () => {
+          void loadRef.current();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
+          void loadRef.current();
+        });
+
+      channel.subscribe();
+    } catch (err) {
+      console.warn('Realtime calendario no disponible', err);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        void supabase.removeChannel(channel);
+      }
     };
-  }, [load]);
+  }, []);
 
   const items = useMemo<CalendarItem[]>(() => {
     const combined: CalendarItem[] = [

@@ -72,9 +72,13 @@ export const shadow = {
 };
 
 export const fonts = {
+  regular: 'Poppins_400Regular',
+  medium: 'Poppins_500Medium',
+  semiBold: 'Poppins_600SemiBold',
+  bold: 'Poppins_700Bold',
+  display: 'Pacifico_400Regular',
   script: {
-    fontStyle: 'italic' as const,
-    fontWeight: '500' as const,
+    fontFamily: 'Pacifico_400Regular',
   },
 };
 
