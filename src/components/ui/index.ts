@@ -1,8 +1,10 @@
 export { TropicalBackground } from './TropicalBackground';
 export { GlassCard } from './GlassCard';
-export { WoodLogo } from './WoodLogo';
+export { WoodLogo, BrandLogo } from './WoodLogo';
 export { PasswordInput } from './PasswordInput';
 export { SegmentedControl } from './SegmentedControl';
 export { FlamingoFloat } from './FlamingoFloat';
 export { SplashFAB } from './SplashFAB';
 export { WaveTabBar } from './WaveTabBar';
+export { FancyTitle } from './FancyTitle';
+export { ErrorBoundary } from './ErrorBoundary';

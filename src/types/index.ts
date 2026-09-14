@@ -46,4 +46,5 @@ export type Task = {
   due_at: string | null;
   created_by: string | null;
   created_at: string;
+  is_personal: boolean;
 };

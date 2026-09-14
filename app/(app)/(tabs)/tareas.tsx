@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -13,14 +13,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/src/lib/supabase';
 import { colors, radius, shadow } from '@/src/theme';
-import { GlassCard, TropicalBackground, WoodLogo } from '@/src/components/ui';
+import { FancyTitle, GlassCard, SegmentedControl, TropicalBackground, WoodLogo } from '@/src/components/ui';
 import type { Task } from '@/src/types';
+
+type TaskScope = 'shared' | 'personal';
+
+function mapTaskError(message: string, code?: string) {
+  if (message.includes('does not exist') || code === '42P01') {
+    return 'La tabla de tareas aún no está creada. Aplica supabase/migrations/20260914140000_tasks.sql.';
+  }
+  if (message.includes('is_personal') || message.includes('column')) {
+    return 'Falta la columna de tareas personales. Aplica supabase/migrations/20260914150000_tasks_personal.sql.';
+  }
+  return message;
+}
 
 export default function TareasScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState('');
+  const [scope, setScope] = useState<TaskScope>('shared');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +46,7 @@ export default function TareasScreen() {
       .order('done', { ascending: true })
       .order('created_at', { ascending: false });
     if (err) {
-      setError(
-        err.message.includes('does not exist') || err.code === '42P01'
-          ? 'La tabla de tareas aún no está creada. Aplica la migración supabase/migrations/20260914140000_tasks.sql.'
-          : err.message,
-      );
+      setError(mapTaskError(err.message, err.code));
       setTasks([]);
     } else {
       setTasks((data as Task[]) ?? []);
@@ -56,17 +65,26 @@ export default function TareasScreen() {
     };
   }, [load]);
 
+  const visible = useMemo(() => {
+    if (scope === 'personal') {
+      return tasks.filter((t) => t.is_personal && t.created_by === user?.id);
+    }
+    return tasks.filter((t) => !t.is_personal);
+  }, [tasks, scope, user?.id]);
+
   async function addTask() {
     const t = title.trim();
     if (!t || saving) return;
     setSaving(true);
+    const isPersonal = scope === 'personal';
     const { error: err } = await supabase.from('tasks').insert({
       title: t,
       done: false,
       created_by: user?.id ?? null,
+      is_personal: isPersonal,
     });
     setSaving(false);
-    if (err) setError(err.message);
+    if (err) setError(mapTaskError(err.message, err.code));
     else {
       setTitle('');
       load();
@@ -87,15 +105,30 @@ export default function TareasScreen() {
     <TropicalBackground>
       <View style={[styles.head, { paddingTop: insets.top + 8 }]}>
         <WoodLogo size="sm" />
-        <Text style={styles.title}>Tareas</Text>
-        <Text style={styles.sub}>Lista compartida del equipo</Text>
+        <FancyTitle size={28} tilt={-5} style={styles.title}>
+          Tareas
+        </FancyTitle>
+        <Text style={styles.sub}>
+          {scope === 'personal' ? 'Solo tú las ves' : 'Visibles para todo el equipo'}
+        </Text>
+      </View>
+
+      <View style={styles.tabs}>
+        <SegmentedControl
+          options={[
+            { id: 'shared', label: 'Equipo' },
+            { id: 'personal', label: 'Personales' },
+          ]}
+          value={scope}
+          onChange={setScope}
+        />
       </View>
 
       <View style={styles.composer}>
         <TextInput
           value={title}
           onChangeText={setTitle}
-          placeholder="Nueva tarea…"
+          placeholder={scope === 'personal' ? 'Nueva tarea personal…' : 'Nueva tarea del equipo…'}
           placeholderTextColor={colors.muted}
           style={styles.input}
           onSubmitEditing={addTask}
@@ -115,12 +148,16 @@ export default function TareasScreen() {
         <ActivityIndicator color={colors.white} style={{ marginTop: 30 }} />
       ) : (
         <FlatList
-          data={tasks}
+          data={visible}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
           ListEmptyComponent={
             <GlassCard padding={20}>
-              <Text style={styles.empty}>Sin tareas. Agrega la primera para el equipo.</Text>
+              <Text style={styles.empty}>
+                {scope === 'personal'
+                  ? 'Sin tareas personales. Agrega una solo para ti.'
+                  : 'Sin tareas de equipo. Agrega la primera.'}
+              </Text>
             </GlassCard>
           }
           renderItem={({ item }) => (
@@ -148,15 +185,9 @@ export default function TareasScreen() {
 
 const styles = StyleSheet.create({
   head: { paddingHorizontal: 16 },
-  title: {
-    color: colors.white,
-    fontSize: 26,
-    fontWeight: '800',
-    marginTop: 8,
-    textShadowColor: 'rgba(0,0,0,0.25)',
-    textShadowRadius: 3,
-  },
-  sub: { color: 'rgba(255,255,255,0.85)', marginTop: 2, marginBottom: 12 },
+  title: { marginTop: 8 },
+  sub: { color: 'rgba(255,255,255,0.85)', marginTop: 2, marginBottom: 10, marginLeft: 6 },
+  tabs: { paddingHorizontal: 16, marginBottom: 10 },
   composer: {
     flexDirection: 'row',
     gap: 8,

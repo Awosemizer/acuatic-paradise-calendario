@@ -1,6 +1,6 @@
 import { Platform, StyleSheet, View, type ViewProps, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { colors, radius, shadow } from '@/src/theme';
+import { colors, fill, radius, shadow } from '@/src/theme';
 
 type Props = ViewProps & {
   intensity?: number;
@@ -40,7 +40,7 @@ export function GlassCard({
 
   return (
     <View style={[styles.wrap, shadow.card]}>
-      <BlurView intensity={intensity} tint="light" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={intensity} tint="light" style={fill} />
       <View style={[styles.nativeGlass, strong && styles.webStrong]} />
       {body}
     </View>
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.55)',
   },
   nativeGlass: {
-    ...StyleSheet.absoluteFill,
+    ...fill,
     backgroundColor: colors.glassSoft,
   },
   webGlass: {

@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/context/AuthContext';
 import { emailToUsername } from '@/src/lib/authUsername';
 import { colors, radius, shadow } from '@/src/theme';
-import { GlassCard, TropicalBackground, WoodLogo } from '@/src/components/ui';
+import { FancyTitle, GlassCard, TropicalBackground, WoodLogo } from '@/src/components/ui';
 
 export default function MasScreen() {
   const router = useRouter();
@@ -26,7 +26,10 @@ export default function MasScreen() {
           { paddingTop: insets.top + 8, paddingBottom: 120 },
         ]}
       >
-        <WoodLogo size="md" style={{ alignSelf: 'center', marginBottom: 12 }} />
+        <WoodLogo size="md" style={{ alignSelf: 'center', marginBottom: 8 }} />
+        <FancyTitle size={30} tilt={-5} style={styles.pageTitle}>
+          Más
+        </FancyTitle>
 
         <GlassCard strong padding={20} style={styles.profile}>
           <View style={styles.avatar}>
@@ -38,12 +41,11 @@ export default function MasScreen() {
         </GlassCard>
 
         <GlassCard padding={18} style={{ marginTop: 12 }}>
-          <Text style={styles.aboutTitle}>Acerca de Acuatic Paradise</Text>
+          <Text style={styles.aboutTitle}>Acerca de Aquatic Paradise</Text>
           <Text style={styles.aboutBody}>
             Salón de eventos en Pachuca. Este calendario ayuda al equipo a coordinar visitas de
             clientes y eventos internos en un solo lugar, con sincronización en tiempo real.
           </Text>
-          <Text style={styles.tagline}>Más que eventos, son buenos momentos ♡</Text>
         </GlassCard>
 
         <Pressable
@@ -74,6 +76,7 @@ export default function MasScreen() {
 
 const styles = StyleSheet.create({
   pad: { paddingHorizontal: 16 },
+  pageTitle: { alignSelf: 'center', marginBottom: 14 },
   profile: { alignItems: 'center' },
   avatar: {
     width: 72,
@@ -90,12 +93,6 @@ const styles = StyleSheet.create({
   role: { color: colors.tealDeep, fontWeight: '700', marginTop: 6, textTransform: 'capitalize' },
   aboutTitle: { fontWeight: '800', fontSize: 16, color: colors.navy, marginBottom: 8 },
   aboutBody: { color: colors.muted, lineHeight: 20, fontSize: 14 },
-  tagline: {
-    marginTop: 12,
-    fontStyle: 'italic',
-    color: colors.navySoft,
-    fontSize: 13,
-  },
   rowBtn: {
     marginTop: 14,
     flexDirection: 'row',

@@ -16,9 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/src/context/AuthContext';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
-import { colors, radius, shadow } from '@/src/theme';
+import { colors, fill, radius, shadow } from '@/src/theme';
 import {
-  FlamingoFloat,
+  FancyTitle,
   PasswordInput,
   TropicalBackground,
   WoodLogo,
@@ -64,10 +64,10 @@ export default function LoginScreen() {
 
   return (
     <TropicalBackground overlay="none">
-      <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ scale: pulse }], opacity: 0.35 }]} pointerEvents="none">
+      <Animated.View style={[fill, { transform: [{ scale: pulse }], opacity: 0.35 }]} pointerEvents="none">
         <LinearGradient
           colors={['transparent', 'rgba(94,232,236,0.25)', 'transparent']}
-          style={StyleSheet.absoluteFill}
+          style={fill}
         />
       </Animated.View>
 
@@ -82,8 +82,6 @@ export default function LoginScreen() {
           ]}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.scriptTop}>Más que eventos, son buenos momentos ♡</Text>
-
           <WoodLogo size="lg" style={styles.logo} />
 
           <Animated.View style={{ opacity, transform: [{ translateY: slide }] }}>
@@ -91,7 +89,9 @@ export default function LoginScreen() {
               <View style={styles.cardIcon}>
                 <Ionicons name="calendar" size={28} color={colors.teal} />
               </View>
-              <Text style={styles.welcome}>Bienvenido 🌴</Text>
+              <FancyTitle color={colors.navy} size={28} tilt={-5} style={styles.welcome}>
+                Bienvenido
+              </FancyTitle>
               <Text style={styles.subtitle}>Calendario compartido del equipo</Text>
 
               {!isSupabaseConfigured && (
@@ -171,11 +171,8 @@ export default function LoginScreen() {
             ))}
           </View>
 
-          <Text style={styles.scriptBottom}>Eventos hoy, mejores recuerdos mañana ♡</Text>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <FlamingoFloat size={130} style={styles.flamingo} />
     </TropicalBackground>
   );
 }
@@ -183,15 +180,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 20, flexGrow: 1 },
-  scriptTop: {
-    color: colors.white,
-    fontStyle: 'italic',
-    fontSize: 13,
-    textAlign: 'right',
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowRadius: 4,
-    marginBottom: 8,
-  },
   logo: { alignSelf: 'center', marginBottom: 16 },
   card: {
     backgroundColor: 'rgba(255,255,255,0.88)',
@@ -293,14 +281,4 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowRadius: 3,
   },
-  scriptBottom: {
-    color: colors.white,
-    fontStyle: 'italic',
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 8,
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowRadius: 4,
-  },
-  flamingo: { left: -10, bottom: 40, zIndex: 2 },
 });

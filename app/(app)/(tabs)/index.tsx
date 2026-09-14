@@ -15,12 +15,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { useCalendarData } from '@/src/hooks/useCalendarData';
 import { formatChipDate, formatDayHeading, isSameDay } from '@/src/lib/dates';
 import { colors, radius, shadow } from '@/src/theme';
-import {
-  FlamingoFloat,
-  GlassCard,
-  TropicalBackground,
-  WoodLogo,
-} from '@/src/components/ui';
+import { FancyTitle, GlassCard, TropicalBackground, WoodLogo } from '@/src/components/ui';
 import { CalendarItemCard } from '@/src/components/CalendarItemCard';
 import type { CalendarItem } from '@/src/types';
 
@@ -53,11 +48,14 @@ export default function InicioScreen() {
       >
         <View style={styles.topRow}>
           <WoodLogo size="sm" />
-          <Text style={styles.script}>Buenas experiencias todo el año ♡</Text>
         </View>
 
+        <FancyTitle size={30} tilt={-5} style={styles.welcome}>
+          Bienvenido
+        </FancyTitle>
+        <Text style={styles.hello}>Hola, {name}</Text>
+
         <GlassCard strong style={styles.hero} padding={18}>
-          <Text style={styles.hello}>Hola, {name} 👋</Text>
           <Text style={styles.heroTitle}>Resumen de hoy</Text>
           <Text style={styles.heroDate}>{formatDayHeading(today)}</Text>
           <View style={styles.stats}>
@@ -76,7 +74,9 @@ export default function InicioScreen() {
           </View>
         </GlassCard>
 
-        <Text style={styles.section}>Acciones rápidas</Text>
+        <FancyTitle size={18} tilt={-3} style={styles.sectionTitle}>
+          Acciones rápidas
+        </FancyTitle>
         <View style={styles.actions}>
           <Pressable
             style={[styles.action, { backgroundColor: colors.teal }]}
@@ -101,12 +101,14 @@ export default function InicioScreen() {
           </Pressable>
         </View>
 
-        <Text style={styles.section}>Próximos en la agenda</Text>
+        <FancyTitle size={18} tilt={-3} style={styles.sectionTitle}>
+          Próximos en la agenda
+        </FancyTitle>
         {loading ? (
           <ActivityIndicator color={colors.teal} style={{ marginTop: 20 }} />
         ) : upcoming.length === 0 ? (
           <GlassCard padding={20}>
-            <Text style={styles.empty}>Sin citas próximas. ¡Buen momento para planear!</Text>
+            <Text style={styles.empty}>Sin citas próximas. Agrega la primera desde el calendario.</Text>
           </GlassCard>
         ) : (
           upcoming.map((item) => (
@@ -117,7 +119,6 @@ export default function InicioScreen() {
           ))
         )}
       </ScrollView>
-      <FlamingoFloat size={90} style={styles.flam} />
     </TropicalBackground>
   );
 }
@@ -127,21 +128,19 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  script: {
-    flex: 1,
+  welcome: { marginBottom: 2, marginLeft: 4 },
+  hello: {
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '600',
+    marginBottom: 14,
     marginLeft: 8,
-    color: colors.white,
-    fontStyle: 'italic',
-    fontSize: 12,
-    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowColor: 'rgba(0,0,0,0.25)',
     textShadowRadius: 3,
   },
   hero: { marginBottom: 16 },
-  hello: { color: colors.muted, fontWeight: '600' },
-  heroTitle: { fontSize: 22, fontWeight: '800', color: colors.navy, marginTop: 4 },
+  heroTitle: { fontSize: 22, fontWeight: '800', color: colors.navy },
   heroDate: { color: colors.navySoft, textTransform: 'capitalize', marginTop: 2 },
   stats: { flexDirection: 'row', gap: 12, marginTop: 14 },
   stat: {
@@ -154,15 +153,7 @@ const styles = StyleSheet.create({
   statEvent: { backgroundColor: colors.coralMist },
   statNum: { fontSize: 24, fontWeight: '800', color: colors.tealDeep },
   statLabel: { color: colors.muted, fontWeight: '700', fontSize: 12, marginTop: 2 },
-  section: {
-    color: colors.white,
-    fontWeight: '800',
-    fontSize: 16,
-    marginBottom: 10,
-    marginTop: 8,
-    textShadowColor: 'rgba(0,0,0,0.25)',
-    textShadowRadius: 3,
-  },
+  sectionTitle: { marginBottom: 10, marginTop: 8, marginLeft: 4 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   action: {
     flexDirection: 'row',
@@ -175,5 +166,4 @@ const styles = StyleSheet.create({
   actionText: { color: colors.white, fontWeight: '800', fontSize: 13 },
   empty: { color: colors.muted, textAlign: 'center' },
   when: { color: colors.white, fontSize: 11, marginTop: -4, marginBottom: 10, marginLeft: 4 },
-  flam: { right: 8, bottom: 100 },
 });

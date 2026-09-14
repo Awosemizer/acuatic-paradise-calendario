@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatDayHeading, formatMonthYear, weekDays } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarView } from '@/src/types';
-import { SegmentedControl, WoodLogo } from '@/src/components/ui';
+import { FancyTitle, SegmentedControl, WoodLogo } from '@/src/components/ui';
 
 type Props = {
   cursor: Date;
@@ -40,22 +40,11 @@ export function CalendarHeader({
         ? `${week[0].getDate()} – ${week[6].getDate()} ${formatMonthYear(cursor)}`
         : formatDayHeading(cursor);
 
-  const subtitle =
-    view === 'week'
-      ? 'Planificamos juntos grandes momentos'
-      : view === 'month'
-        ? 'Organizamos hoy, momentos increíbles mañana'
-        : 'Un gran día en Acuatic Paradise';
-
   return (
     <View style={styles.wrap}>
       <View style={styles.top}>
         <WoodLogo size="sm" />
-        <Text style={styles.script} numberOfLines={2}>
-          {view === 'week'
-            ? 'Organización hoy, experiencias inolvidables ♡'
-            : 'Buenas experiencias todo el año ♡'}
-        </Text>
+        <View style={{ flex: 1 }} />
         <Pressable onPress={onProfile} style={styles.avatar}>
           <Text style={styles.avatarText}>
             {(staffName ?? 'E').trim().charAt(0).toUpperCase() || 'E'}
@@ -68,9 +57,10 @@ export function CalendarHeader({
           <View style={styles.calIcon}>
             <Ionicons name="calendar" size={20} color={colors.teal} />
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.heading}>Calendario del equipo</Text>
-            <Text style={styles.sub}>{subtitle}</Text>
+          <View style={{ flex: 1, paddingRight: 4 }}>
+            <FancyTitle color={colors.navy} size={17} tilt={-3}>
+              Calendario del equipo
+            </FancyTitle>
           </View>
           <Pressable onPress={onToday} style={styles.hoyBtn}>
             <Ionicons name="today-outline" size={14} color={colors.tealDeep} />
@@ -107,14 +97,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  script: {
-    flex: 1,
-    color: colors.white,
-    fontStyle: 'italic',
-    fontSize: 11,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowRadius: 3,
-  },
   avatar: {
     width: 36,
     height: 36,
@@ -142,8 +124,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heading: { fontSize: 16, fontWeight: '800', color: colors.navy },
-  sub: { fontSize: 11, color: colors.muted, marginTop: 2 },
   hoyBtn: {
     flexDirection: 'row',
     alignItems: 'center',

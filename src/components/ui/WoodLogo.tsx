@@ -1,7 +1,7 @@
 import { Image, StyleSheet, Text, View, type ImageStyle, type ViewStyle } from 'react-native';
 import { colors } from '@/src/theme';
 
-const logoSrc = require('@/assets/brand/logo-wood-sign.png');
+const logoSrc = require('@/assets/brand/logo-oficial.png');
 
 type Props = {
   size?: 'sm' | 'md' | 'lg';
@@ -11,18 +11,18 @@ type Props = {
   fallback?: boolean;
 };
 
-const HEIGHTS = { sm: 52, md: 78, lg: 120 };
+const SIZES = { sm: 48, md: 88, lg: 148 };
 
 export function WoodLogo({ size = 'md', showSubtitle = true, style, imageStyle, fallback }: Props) {
-  const h = HEIGHTS[size];
+  const d = SIZES[size];
 
   if (!fallback) {
     return (
       <View style={[styles.wrap, style]}>
         <Image
           source={logoSrc}
-          style={[{ height: h, width: h * 1.85, resizeMode: 'contain' }, imageStyle]}
-          accessibilityLabel="Acuatic Paradise, Salón Pachuca"
+          style={[{ height: d, width: d, resizeMode: 'contain' }, imageStyle]}
+          accessibilityLabel="Aquatic Paradise, Salón de Eventos"
         />
       </View>
     );
@@ -32,12 +32,14 @@ export function WoodLogo({ size = 'md', showSubtitle = true, style, imageStyle, 
     <View style={[styles.fallback, style]}>
       <Text style={styles.icon}>🌴</Text>
       <View>
-        <Text style={styles.brand}>Acuatic Paradise</Text>
+        <Text style={styles.brand}>Aquatic Paradise</Text>
         {showSubtitle ? <Text style={styles.sub}>SALÓN · PACHUCA</Text> : null}
       </View>
     </View>
   );
 }
+
+export const BrandLogo = WoodLogo;
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },

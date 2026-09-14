@@ -4,6 +4,7 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withTiming,
@@ -15,33 +16,48 @@ type Props = {
   style?: ViewStyle;
   imageStyle?: ImageStyle;
   size?: number;
+  opacity?: number;
+  delay?: number;
 };
 
-export function FlamingoFloat({ style, imageStyle, size = 120 }: Props) {
+export function FlamingoFloat({
+  style,
+  imageStyle,
+  size = 120,
+  opacity = 1,
+  delay = 0,
+}: Props) {
   const y = useSharedValue(0);
   const rot = useSharedValue(0);
 
   useEffect(() => {
-    y.value = withRepeat(
-      withSequence(
-        withTiming(-8, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
-        withTiming(6, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
+    y.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(-8, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
+          withTiming(6, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
+        ),
+        -1,
+        true,
       ),
-      -1,
-      true,
     );
-    rot.value = withRepeat(
-      withSequence(
-        withTiming(-3, { duration: 2800, easing: Easing.inOut(Easing.sin) }),
-        withTiming(3, { duration: 2800, easing: Easing.inOut(Easing.sin) }),
+    rot.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(-3, { duration: 2800, easing: Easing.inOut(Easing.sin) }),
+          withTiming(3, { duration: 2800, easing: Easing.inOut(Easing.sin) }),
+        ),
+        -1,
+        true,
       ),
-      -1,
-      true,
     );
-  }, [y, rot]);
+  }, [y, rot, delay]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: y.value }, { rotate: `${rot.value}deg` }],
+    opacity,
   }));
 
   return (
@@ -58,5 +74,6 @@ export function FlamingoFloat({ style, imageStyle, size = 120 }: Props) {
 const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
+    zIndex: 0,
   },
 });

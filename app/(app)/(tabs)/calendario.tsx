@@ -7,7 +7,7 @@ import { CalendarHeader } from '@/src/components/CalendarHeader';
 import { DayView } from '@/src/components/DayView';
 import { MonthView } from '@/src/components/MonthView';
 import { WeekView } from '@/src/components/WeekView';
-import { SplashFAB, TropicalBackground, FlamingoFloat } from '@/src/components/ui';
+import { ErrorBoundary, SplashFAB, TropicalBackground } from '@/src/components/ui';
 import { useAuth } from '@/src/context/AuthContext';
 import { useCalendarData } from '@/src/hooks/useCalendarData';
 import { shiftCursor } from '@/src/lib/dates';
@@ -15,6 +15,16 @@ import { colors } from '@/src/theme';
 import type { CalendarItem, CalendarView } from '@/src/types';
 
 export default function CalendarioScreen() {
+  return (
+    <TropicalBackground>
+      <ErrorBoundary fallbackTitle="No se pudo abrir el calendario">
+        <CalendarioBody />
+      </ErrorBoundary>
+    </TropicalBackground>
+  );
+}
+
+function CalendarioBody() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
@@ -47,68 +57,65 @@ export default function CalendarioScreen() {
   }
 
   return (
-    <TropicalBackground>
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <CalendarHeader
-          cursor={cursor}
-          view={view}
-          onView={setView}
-          onPrev={() => setCursor((c) => shiftCursor(c, view, -1))}
-          onNext={() => setCursor((c) => shiftCursor(c, view, 1))}
-          onToday={() => {
-            const now = new Date();
-            setCursor(now);
-            setSelectedDay(now);
-          }}
-          onProfile={() => router.push('/(app)/(tabs)/mas')}
-          staffName={profile?.full_name || profile?.username || 'Equipo'}
-        />
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <CalendarHeader
+        cursor={cursor}
+        view={view}
+        onView={setView}
+        onPrev={() => setCursor((c) => shiftCursor(c, view, -1))}
+        onNext={() => setCursor((c) => shiftCursor(c, view, 1))}
+        onToday={() => {
+          const now = new Date();
+          setCursor(now);
+          setSelectedDay(now);
+        }}
+        onProfile={() => router.push('/(app)/(tabs)/mas')}
+        staffName={profile?.full_name || profile?.username || 'Equipo'}
+      />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <View style={styles.body}>
-          {loading ? (
-            <View style={styles.loading}>
-              <ActivityIndicator color={colors.teal} />
-            </View>
-          ) : view === 'day' ? (
-            <DayView date={cursor} items={items} onPressItem={openItem} />
-          ) : view === 'week' ? (
-            <WeekView cursor={cursor} items={items} onPressItem={openItem} onPressDay={goDay} />
-          ) : (
-            <MonthView
-              cursor={cursor}
-              selected={selectedDay}
-              items={items}
-              onSelectDay={(day) => {
-                setSelectedDay(day);
-                setCursor(day);
-              }}
-              onPressItem={openItem}
-            />
-          )}
-        </View>
-
-        <SplashFAB
-          onPress={() => setMenuOpen(true)}
-          bottom={Math.max(insets.bottom, 8) + 8}
-        />
-        <FlamingoFloat size={70} style={styles.flam} />
-
-        <AddMenu
-          visible={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          onVisit={() => {
-            setMenuOpen(false);
-            router.push({ pathname: '/(app)/visita/nueva', params: { at: isoForCreate } });
-          }}
-          onEvent={() => {
-            setMenuOpen(false);
-            router.push({ pathname: '/(app)/evento/nuevo', params: { at: isoForCreate } });
-          }}
-        />
+      <View style={styles.body}>
+        {loading ? (
+          <View style={styles.loading}>
+            <ActivityIndicator color={colors.teal} />
+          </View>
+        ) : view === 'day' ? (
+          <DayView date={cursor} items={items} onPressItem={openItem} />
+        ) : view === 'week' ? (
+          <WeekView cursor={cursor} items={items} onPressItem={openItem} onPressDay={goDay} />
+        ) : (
+          <MonthView
+            cursor={cursor}
+            selected={selectedDay}
+            items={items}
+            onSelectDay={(day) => {
+              setSelectedDay(day);
+              setCursor(day);
+            }}
+            onPressItem={openItem}
+          />
+        )}
       </View>
-    </TropicalBackground>
+
+      <SplashFAB
+        onPress={() => setMenuOpen(true)}
+        bottom={Math.max(insets.bottom, 8) + 8}
+      />
+
+      <AddMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onVisit={() => {
+          setMenuOpen(false);
+          router.push({ pathname: '/(app)/visita/nueva', params: { at: isoForCreate } });
+        }}
+        onEvent={() => {
+          setMenuOpen(false);
+          router.push({ pathname: '/(app)/evento/nuevo', params: { at: isoForCreate } });
+        }}
+      />
+    </View>
   );
 }
 
@@ -134,5 +141,4 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 6,
   },
-  flam: { left: 4, bottom: 90, opacity: 0.95 },
 });

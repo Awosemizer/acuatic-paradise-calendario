@@ -1,8 +1,8 @@
 import { useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { colors, shadow } from '@/src/theme';
+import { colors, fill, shadow } from '@/src/theme';
 
 type Props = {
   onPress: () => void;
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   splash: {
-    ...StyleSheet.absoluteFill,
+    ...fill,
     alignItems: 'center',
     justifyContent: 'center',
   },

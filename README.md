@@ -25,6 +25,8 @@ Todo el staff ve y edita las **mismas** visitas y eventos. Los cambios se reflej
 2. Abre **SQL Editor** y pega, en orden:
    - `supabase/migrations/20260914120000_init.sql`
    - `supabase/migrations/20260914130000_profiles_username.sql` (si ya corriste solo el init anterior, ejecuta este; si es proyecto nuevo y el init ya incluye `username`, también es seguro)
+   - `supabase/migrations/20260914140000_tasks.sql`
+   - `supabase/migrations/20260914150000_tasks_personal.sql`
    - `supabase/seed.sql`
 3. En **Authentication → Providers** deja **Email** activado (Supabase Auth lo usa por debajo). Desactiva **Confirm email** mientras configuras al equipo (así pueden entrar de inmediato).
 4. Crea las **3 cuentas del staff** solo desde el dashboard de Supabase (no hay registro en la app). Ver sección siguiente.
@@ -118,7 +120,7 @@ El APK queda en `android/app/build/outputs/apk/release/`. Requiere Android SDK /
 ```
 app/                    pantallas (Expo Router)
   login.tsx             inicio de sesión (usuario + contraseña)
-  (app)/index.tsx       calendario (día / semana / mes)
+  (app)/(tabs)/          Inicio, Calendario, Tareas, Más
   (app)/visita/         alta y edición de visitas
   (app)/evento/         alta y edición de eventos
   (app)/perfil.tsx      cuenta y cierre de sesión
@@ -135,6 +137,7 @@ supabase/seed.sql       visitas y eventos de ejemplo
 | profiles  | Nombre / username del staff (`auth.users`) | Lectura de todos; update propio |
 | visits    | Citas / visitas de clientes              | CRUD para `authenticated`   |
 | events    | Eventos internos del salón               | CRUD para `authenticated`   |
+| tasks     | Tareas de equipo y personales            | Shared: todo el staff; personales: solo `created_by` |
 
 No hay dueño por fila: **todo el equipo comparte el mismo calendario**.
 

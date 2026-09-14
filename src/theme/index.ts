@@ -77,3 +77,12 @@ export const fonts = {
     fontWeight: '500' as const,
   },
 };
+
+/** Portable absolute fill. Do not spread StyleSheet.absoluteFill (a number on web). */
+export const fill = {
+  position: 'absolute' as const,
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+};

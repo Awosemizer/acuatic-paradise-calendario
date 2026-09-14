@@ -1,6 +1,5 @@
 import { parseISO } from 'date-fns';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { isSameDay, isSameMonth, monthGrid } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
@@ -94,10 +93,6 @@ export function MonthView({ cursor, selected, items, onSelectDay, onPressItem }:
             month: 'long',
           })}
         </Text>
-        <View style={styles.sunRow}>
-          <Ionicons name="sunny" size={14} color={colors.gold} />
-          <Text style={styles.sunText}>Un gran día en Acuatic Paradise</Text>
-        </View>
       </View>
 
       {selectedItems.length === 0 ? (
@@ -158,6 +153,4 @@ const styles = StyleSheet.create({
     color: colors.ink,
     textTransform: 'capitalize',
   },
-  sunRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  sunText: { color: colors.muted, fontSize: 12, fontStyle: 'italic' },
 });

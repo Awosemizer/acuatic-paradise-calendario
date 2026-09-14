@@ -21,7 +21,6 @@ type Props = {
 const ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   index: 'home',
   calendario: 'calendar',
-  equipo: 'people',
   tareas: 'checkbox',
   mas: 'ellipsis-horizontal',
 };
@@ -29,7 +28,6 @@ const ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 const LABELS: Record<string, string> = {
   index: 'Inicio',
   calendario: 'Calendario',
-  equipo: 'Equipo',
   tareas: 'Tareas',
   mas: 'Más',
 };
@@ -89,7 +87,6 @@ export function WaveTabBar({ state, descriptors, navigation }: Props) {
           );
         })}
       </View>
-      <Text style={styles.motto}>Buena semana ♡</Text>
     </View>
   );
 }
@@ -134,13 +131,5 @@ const styles = StyleSheet.create({
   underlineSpacer: {
     marginTop: 2,
     height: 3,
-  },
-  motto: {
-    position: 'absolute',
-    right: 10,
-    top: -18,
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 11,
-    fontStyle: 'italic',
   },
 });
