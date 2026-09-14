@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -14,6 +13,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/src/components/Avatar';
 import { Field } from '@/src/components/FormFields';
+import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { emailToUsername } from '@/src/lib/authUsername';
 import { supabase } from '@/src/lib/supabase';
@@ -133,7 +133,7 @@ export default function PerfilScreen() {
         <Text style={styles.title}>Editar perfil</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+      <KeyboardScreen contentContainerStyle={{ paddingBottom: 24 }} bottomPadding={120}>
         <View style={styles.card}>
           <Pressable onPress={pickPhoto} style={styles.avatarWrap}>
             <Avatar name={displayName} uri={preview} size={96} />
@@ -176,7 +176,7 @@ export default function PerfilScreen() {
             <Text style={styles.saveText}>Guardar</Text>
           )}
         </Pressable>
-      </ScrollView>
+      </KeyboardScreen>
     </SafeAreaView>
   );
 }

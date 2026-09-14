@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConfirmDialog } from '@/src/components/ConfirmDialog';
 import { DateTimeFields, DurationPicker, Field } from '@/src/components/FormFields';
+import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { parseDateTimeInputs, parseISO, toDateInput, toTimeInput } from '@/src/lib/dates';
 import { supabase } from '@/src/lib/supabase';
@@ -103,7 +104,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.pad}>
+      <KeyboardScreen contentContainerStyle={styles.pad} bottomPadding={120}>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.back}>‹ Calendario</Text>
         </Pressable>
@@ -138,7 +139,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
             <Text style={styles.deleteText}>Eliminar evento</Text>
           </Pressable>
         ) : null}
-      </ScrollView>
+      </KeyboardScreen>
 
       <ConfirmDialog
         visible={confirmDelete}
@@ -155,7 +156,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.offWhite },
-  pad: { padding: 20, paddingBottom: 48 },
+  pad: { padding: 20 },
   back: { color: colors.sky, fontWeight: '700', marginBottom: 8 },
   title: { fontSize: 26, fontWeight: '800', color: colors.ink },
   kicker: { color: colors.coral, fontWeight: '800', marginBottom: 18, marginTop: 4 },

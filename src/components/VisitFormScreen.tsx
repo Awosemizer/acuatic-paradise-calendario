@@ -3,14 +3,13 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConfirmDialog } from '@/src/components/ConfirmDialog';
 import { ChipRow, DateTimeFields, DurationPicker, Field } from '@/src/components/FormFields';
+import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { SERVICE_TYPES, VISIT_STATUSES } from '@/src/lib/constants';
 import { parseDateTimeInputs, parseISO, toDateInput, toTimeInput } from '@/src/lib/dates';
@@ -124,7 +123,7 @@ export function VisitFormScreen({ visitId }: { visitId?: string }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.pad}>
+      <KeyboardScreen contentContainerStyle={styles.pad} bottomPadding={120}>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.back}>‹ Calendario</Text>
         </Pressable>
@@ -180,7 +179,7 @@ export function VisitFormScreen({ visitId }: { visitId?: string }) {
             <Text style={styles.deleteText}>Eliminar visita</Text>
           </Pressable>
         ) : null}
-      </ScrollView>
+      </KeyboardScreen>
 
       <ConfirmDialog
         visible={confirmDelete}
@@ -197,7 +196,7 @@ export function VisitFormScreen({ visitId }: { visitId?: string }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.offWhite },
-  pad: { padding: 20, paddingBottom: 48 },
+  pad: { padding: 20 },
   back: { color: colors.sky, fontWeight: '700', marginBottom: 8 },
   title: { fontSize: 26, fontWeight: '800', color: colors.ink },
   kicker: { color: colors.aqua, fontWeight: '800', marginBottom: 18, marginTop: 4 },

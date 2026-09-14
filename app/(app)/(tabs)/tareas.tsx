@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -129,91 +131,100 @@ export default function TareasScreen() {
 
   return (
     <TropicalBackground>
-      <ScreenFocusFade>
-        <View style={[styles.head, { paddingTop: insets.top + 8 }]}>
-          <WoodLogo size="sm" />
-          <FancyTitle size={28} tilt={-5} style={styles.title}>
-            Tareas
-          </FancyTitle>
-          <Text style={styles.sub}>
-            {scope === 'personal' ? 'Solo tú las ves' : 'Visibles para todo el equipo'}
-          </Text>
-        </View>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={insets.top + 8}
+      >
+        <ScreenFocusFade>
+          <View style={[styles.head, { paddingTop: insets.top + 8 }]}>
+            <WoodLogo size="sm" />
+            <FancyTitle size={28} tilt={-5} style={styles.title}>
+              Tareas
+            </FancyTitle>
+            <Text style={styles.sub}>
+              {scope === 'personal' ? 'Solo tú las ves' : 'Visibles para todo el equipo'}
+            </Text>
+          </View>
 
-        <View style={styles.tabs}>
-          <SegmentedControl
-            options={[
-              { id: 'shared', label: 'Equipo' },
-              { id: 'personal', label: 'Personales' },
-            ]}
-            value={scope}
-            onChange={setScope}
-          />
-        </View>
-
-        <View style={styles.composer}>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder={scope === 'personal' ? 'Nueva tarea personal…' : 'Nueva tarea del equipo…'}
-            placeholderTextColor={colors.muted}
-            style={styles.input}
-            onSubmitEditing={addTask}
-          />
-          <Pressable onPress={addTask} style={styles.addBtn} disabled={saving}>
-            <Ionicons name="add" size={26} color={colors.white} />
-          </Pressable>
-        </View>
-
-        {error ? (
-          <GlassCard style={{ marginHorizontal: 16, marginBottom: 8 }} padding={12}>
-            <Text style={styles.error}>{error}</Text>
-          </GlassCard>
-        ) : null}
-
-        {loading ? (
-          <ActivityIndicator color={colors.white} style={{ marginTop: 30 }} />
-        ) : (
-          <FadeSlide animKey={scope} style={{ flex: 1 }}>
-            <FlatList
-              data={visible}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-              ListEmptyComponent={
-                <GlassCard padding={20}>
-                  <Text style={styles.empty}>
-                    {scope === 'personal'
-                      ? 'Sin tareas personales. Agrega una solo para ti.'
-                      : 'Sin tareas de equipo. Agrega la primera.'}
-                  </Text>
-                </GlassCard>
-              }
-              renderItem={({ item }) => (
-                <View style={[styles.row, shadow.card, item.done && styles.rowDone]}>
-                  <Pressable onPress={() => toggle(item)} hitSlop={8}>
-                    <Ionicons
-                      name={item.done ? 'checkmark-circle' : 'ellipse-outline'}
-                      size={26}
-                      color={item.done ? colors.success : colors.teal}
-                    />
-                  </Pressable>
-                  <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={3}>
-                    {item.title}
-                  </Text>
-                  <Pressable onPress={() => remove(item)} hitSlop={8}>
-                    <Ionicons name="trash-outline" size={20} color={colors.muted} />
-                  </Pressable>
-                </View>
-              )}
+          <View style={styles.tabs}>
+            <SegmentedControl
+              options={[
+                { id: 'shared', label: 'Equipo' },
+                { id: 'personal', label: 'Personales' },
+              ]}
+              value={scope}
+              onChange={setScope}
             />
-          </FadeSlide>
-        )}
-      </ScreenFocusFade>
+          </View>
+
+          <View style={styles.composer}>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder={scope === 'personal' ? 'Nueva tarea personal…' : 'Nueva tarea del equipo…'}
+              placeholderTextColor={colors.muted}
+              style={styles.input}
+              onSubmitEditing={addTask}
+            />
+            <Pressable onPress={addTask} style={styles.addBtn} disabled={saving}>
+              <Ionicons name="add" size={26} color={colors.white} />
+            </Pressable>
+          </View>
+
+          {error ? (
+            <GlassCard style={{ marginHorizontal: 16, marginBottom: 8 }} padding={12}>
+              <Text style={styles.error}>{error}</Text>
+            </GlassCard>
+          ) : null}
+
+          {loading ? (
+            <ActivityIndicator color={colors.white} style={{ marginTop: 30 }} />
+          ) : (
+            <FadeSlide animKey={scope} style={{ flex: 1 }}>
+              <FlatList
+                data={visible}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                ListEmptyComponent={
+                  <GlassCard padding={20}>
+                    <Text style={styles.empty}>
+                      {scope === 'personal'
+                        ? 'Sin tareas personales. Agrega una solo para ti.'
+                        : 'Sin tareas de equipo. Agrega la primera.'}
+                    </Text>
+                  </GlassCard>
+                }
+                renderItem={({ item }) => (
+                  <View style={[styles.row, shadow.card, item.done && styles.rowDone]}>
+                    <Pressable onPress={() => toggle(item)} hitSlop={8}>
+                      <Ionicons
+                        name={item.done ? 'checkmark-circle' : 'ellipse-outline'}
+                        size={26}
+                        color={item.done ? colors.success : colors.teal}
+                      />
+                    </Pressable>
+                    <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={3}>
+                      {item.title}
+                    </Text>
+                    <Pressable onPress={() => remove(item)} hitSlop={8}>
+                      <Ionicons name="trash-outline" size={20} color={colors.muted} />
+                    </Pressable>
+                  </View>
+                )}
+              />
+            </FadeSlide>
+          )}
+        </ScreenFocusFade>
+      </KeyboardAvoidingView>
     </TropicalBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   head: { paddingHorizontal: 16 },
   title: { marginTop: 8 },
   sub: { color: 'rgba(255,255,255,0.85)', marginTop: 2, marginBottom: 10, marginLeft: 6 },

@@ -34,6 +34,7 @@ export default function LoginScreen() {
   const slide = useRef(new Animated.Value(40)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     Animated.parallel([
@@ -49,6 +50,13 @@ export default function LoginScreen() {
   }, [slide, opacity, pulse]);
 
   if (session) return <Redirect href="/(app)/(tabs)" />;
+
+  function ensureFieldVisible() {
+    // Bring focused field into view on Android when adjustResize + ImageBackground fight.
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+  }
 
   async function onSubmit() {
     setError(null);
@@ -73,14 +81,17 @@ export default function LoginScreen() {
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={insets.top + 8}
       >
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={[
             styles.scroll,
-            { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 },
+            { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 80 },
           ]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           <WoodLogo size="lg" style={styles.logo} />
 
@@ -117,6 +128,7 @@ export default function LoginScreen() {
                   placeholder="Usuario"
                   placeholderTextColor={colors.muted}
                   style={styles.input}
+                  onFocus={ensureFieldVisible}
                 />
               </View>
 
@@ -128,6 +140,7 @@ export default function LoginScreen() {
                 onChangeText={setPassword}
                 placeholder="••••••••"
                 onSubmitEditing={onSubmit}
+                onFocus={ensureFieldVisible}
               />
 
               {error ? <Text style={styles.error}>{error}</Text> : null}
