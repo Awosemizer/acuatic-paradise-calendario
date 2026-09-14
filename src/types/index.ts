@@ -50,3 +50,30 @@ export type Task = {
   created_at: string;
   is_personal: boolean;
 };
+
+export type BitacoraArea = 'piscina' | 'salon' | 'general';
+
+export type BitacoraStatus = 'al_dia' | 'pronto' | 'vencido';
+
+export type BitacoraItem = {
+  id: string;
+  area: BitacoraArea;
+  title: string;
+  description: string | null;
+  interval_days: number;
+  last_done_at: string | null;
+  notes: string | null;
+  active: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BitacoraLog = {
+  id: string;
+  item_id: string;
+  done_at: string;
+  done_by: string | null;
+  notes: string | null;
+  created_at: string;
+};

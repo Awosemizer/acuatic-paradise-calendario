@@ -10,6 +10,7 @@ Todo el staff ve y edita las **mismas** visitas y eventos. Los cambios se reflej
 - Vistas **día**, **semana** y **mes**
 - **Visitas** de clientes: nombre, teléfono (opcional), tipo de servicio, fecha/hora, duración, notas y estado (`programada` / `completada` / `cancelada` / `no asistió`)
 - **Eventos** internos (mantenimiento, juntas, cierres): título, fecha/hora, duración, notas — visualmente distintos (coral vs. aqua)
+- **Bitácora** de mantenimiento (piscina / salón / general) compartida por el staff
 - Sincronización en tiempo real con Supabase Realtime
 - Paleta navy / sky / aqua / coral, interfaz 100 % en español
 
@@ -27,6 +28,8 @@ Todo el staff ve y edita las **mismas** visitas y eventos. Los cambios se reflej
    - `supabase/migrations/20260914130000_profiles_username.sql` (si ya corriste solo el init anterior, ejecuta este; si es proyecto nuevo y el init ya incluye `username`, también es seguro)
    - `supabase/migrations/20260914140000_tasks.sql`
    - `supabase/migrations/20260914150000_tasks_personal.sql`
+   - `supabase/migrations/20260914160000_profiles_avatar_bio.sql`
+   - `supabase/migrations/20260914200000_bitacora.sql`
    - `supabase/seed.sql`
 3. En **Authentication → Providers** deja **Email** activado (Supabase Auth lo usa por debajo). Desactiva **Confirm email** mientras configuras al equipo (así pueden entrar de inmediato).
 4. Crea las **3 cuentas del staff** solo desde el dashboard de Supabase (no hay registro en la app). Ver sección siguiente.

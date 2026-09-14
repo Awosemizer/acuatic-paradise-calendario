@@ -22,6 +22,7 @@ const ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   index: 'home',
   calendario: 'calendar',
   tareas: 'checkbox',
+  bitacora: 'clipboard',
   mas: 'ellipsis-horizontal',
 };
 
@@ -29,6 +30,7 @@ const LABELS: Record<string, string> = {
   index: 'Inicio',
   calendario: 'Calendario',
   tareas: 'Tareas',
+  bitacora: 'Bitácora',
   mas: 'Más',
 };
 
