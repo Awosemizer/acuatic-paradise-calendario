@@ -5,6 +5,8 @@ export type Profile = {
   full_name: string;
   username: string | null;
   role: string;
+  avatar_url?: string | null;
+  bio?: string | null;
   created_at: string;
 };
 

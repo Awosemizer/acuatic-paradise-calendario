@@ -9,3 +9,5 @@ export { WaveTabBar } from './WaveTabBar';
 export { FancyTitle } from './FancyTitle';
 export { ErrorBoundary } from './ErrorBoundary';
 export { AppText, textStyles } from './AppText';
+export { FadeSlide } from './FadeSlide';
+export { ScreenFocusFade } from './ScreenFocusFade';

@@ -15,7 +15,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { useCalendarData } from '@/src/hooks/useCalendarData';
 import { formatChipDate, formatDayHeading, isSameDay } from '@/src/lib/dates';
 import { colors, fonts, radius, shadow } from '@/src/theme';
-import { FancyTitle, GlassCard, TropicalBackground, WoodLogo } from '@/src/components/ui';
+import { FancyTitle, GlassCard, ScreenFocusFade, TropicalBackground, WoodLogo } from '@/src/components/ui';
 import { CalendarItemCard } from '@/src/components/CalendarItemCard';
 import type { CalendarItem } from '@/src/types';
 
@@ -40,6 +40,7 @@ export default function InicioScreen() {
 
   return (
     <TropicalBackground>
+      <ScreenFocusFade>
       <ScrollView
         contentContainerStyle={[
           styles.pad,
@@ -119,6 +120,7 @@ export default function InicioScreen() {
           ))
         )}
       </ScrollView>
+      </ScreenFocusFade>
     </TropicalBackground>
   );
 }

@@ -3,10 +3,11 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Avatar } from '@/src/components/Avatar';
 import { useAuth } from '@/src/context/AuthContext';
 import { emailToUsername } from '@/src/lib/authUsername';
 import { colors, radius, shadow } from '@/src/theme';
-import { FancyTitle, GlassCard, TropicalBackground, WoodLogo } from '@/src/components/ui';
+import { FancyTitle, GlassCard, ScreenFocusFade, TropicalBackground, WoodLogo } from '@/src/components/ui';
 
 export default function MasScreen() {
   const router = useRouter();
@@ -15,61 +16,62 @@ export default function MasScreen() {
 
   const username = profile?.username || emailToUsername(user?.email) || null;
   const displayName = profile?.full_name || username || 'Personal del salón';
-  const initial = displayName.charAt(0).toUpperCase();
   const version = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
     <TropicalBackground>
-      <ScrollView
-        contentContainerStyle={[
-          styles.pad,
-          { paddingTop: insets.top + 8, paddingBottom: 120 },
-        ]}
-      >
-        <WoodLogo size="md" style={{ alignSelf: 'center', marginBottom: 8 }} />
-        <FancyTitle size={30} tilt={-5} style={styles.pageTitle}>
-          Más
-        </FancyTitle>
-
-        <GlassCard strong padding={20} style={styles.profile}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
-          <Text style={styles.name}>{displayName}</Text>
-          {username ? <Text style={styles.username}>@{username}</Text> : null}
-          <Text style={styles.role}>Rol · {profile?.role ?? 'staff'}</Text>
-        </GlassCard>
-
-        <GlassCard padding={18} style={{ marginTop: 12 }}>
-          <Text style={styles.aboutTitle}>Acerca de Aquatic Paradise</Text>
-          <Text style={styles.aboutBody}>
-            Salón de eventos en Pachuca. Este calendario ayuda al equipo a coordinar visitas de
-            clientes y eventos internos en un solo lugar, con sincronización en tiempo real.
-          </Text>
-        </GlassCard>
-
-        <Pressable
-          onPress={() => router.push('/(app)/perfil')}
-          style={[styles.rowBtn, shadow.card]}
+      <ScreenFocusFade>
+        <ScrollView
+          contentContainerStyle={[
+            styles.pad,
+            { paddingTop: insets.top + 8, paddingBottom: 120 },
+          ]}
         >
-          <Ionicons name="person-circle-outline" size={22} color={colors.tealDeep} />
-          <Text style={styles.rowText}>Ver perfil</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-        </Pressable>
+          <WoodLogo size="md" style={{ alignSelf: 'center', marginBottom: 8 }} />
+          <FancyTitle size={30} tilt={-5} style={styles.pageTitle}>
+            Más
+          </FancyTitle>
 
-        <Pressable
-          onPress={async () => {
-            await signOut();
-            router.replace('/login');
-          }}
-          style={[styles.logout, shadow.card]}
-        >
-          <Ionicons name="log-out-outline" size={20} color={colors.white} />
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
-        </Pressable>
+          <GlassCard strong padding={20} style={styles.profile}>
+            <Avatar name={displayName} uri={profile?.avatar_url} size={72} />
+            <Text style={styles.name}>{displayName}</Text>
+            {username ? <Text style={styles.username}>@{username}</Text> : null}
+            <Text style={styles.role}>Rol · {profile?.role ?? 'staff'}</Text>
+            {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+          </GlassCard>
 
-        <Text style={styles.version}>Versión {version}</Text>
-      </ScrollView>
+          <GlassCard padding={18} style={{ marginTop: 12 }}>
+            <Text style={styles.aboutTitle}>Acerca de Aquatic Paradise</Text>
+            <Text style={styles.aboutBody}>
+              Salón de eventos en Pachuca. Este calendario ayuda al equipo a coordinar visitas de
+              clientes y eventos internos en un solo lugar, con sincronización en tiempo real.
+            </Text>
+          </GlassCard>
+
+          <Pressable
+            onPress={() => router.push('/(app)/perfil')}
+            style={[styles.rowBtn, shadow.card]}
+          >
+            <Ionicons name="create-outline" size={22} color={colors.tealDeep} />
+            <Text style={styles.rowText}>Editar perfil</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </Pressable>
+
+          <Pressable
+            onPress={async () => {
+              await signOut();
+              router.replace('/login');
+            }}
+            style={[styles.logout, shadow.card]}
+          >
+            <Ionicons name="log-out-outline" size={20} color={colors.white} />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </Pressable>
+
+          <Text style={styles.version}>Versión {version}</Text>
+          <Text style={styles.signature}>Creado por Awosemizer</Text>
+        </ScrollView>
+      </ScreenFocusFade>
     </TropicalBackground>
   );
 }
@@ -77,20 +79,11 @@ export default function MasScreen() {
 const styles = StyleSheet.create({
   pad: { paddingHorizontal: 16 },
   pageTitle: { alignSelf: 'center', marginBottom: 14 },
-  profile: { alignItems: 'center' },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.teal,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  avatarText: { fontSize: 28, fontWeight: '800', color: colors.white },
-  name: { fontSize: 20, fontWeight: '800', color: colors.ink },
+  profile: { alignItems: 'center', gap: 4 },
+  name: { fontSize: 20, fontWeight: '800', color: colors.ink, marginTop: 8 },
   username: { color: colors.muted, marginTop: 2 },
   role: { color: colors.tealDeep, fontWeight: '700', marginTop: 6, textTransform: 'capitalize' },
+  bio: { color: colors.muted, textAlign: 'center', marginTop: 8, lineHeight: 20, fontSize: 14 },
   aboutTitle: { fontWeight: '800', fontSize: 16, color: colors.navy, marginBottom: 8 },
   aboutBody: { color: colors.muted, lineHeight: 20, fontSize: 14 },
   rowBtn: {
@@ -119,5 +112,13 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.75)',
     marginTop: 20,
     fontSize: 12,
+  },
+  signature: {
+    textAlign: 'center',
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: 8,
+    fontSize: 12,
+    fontStyle: 'italic',
+    letterSpacing: 0.3,
   },
 });

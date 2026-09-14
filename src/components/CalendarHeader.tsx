@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatDayHeading, formatMonthYear, weekDays } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarView } from '@/src/types';
+import { Avatar } from '@/src/components/Avatar';
 import { FancyTitle, SegmentedControl, WoodLogo } from '@/src/components/ui';
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
   onToday: () => void;
   onProfile: () => void;
   staffName?: string;
+  avatarUrl?: string | null;
 };
 
 const VIEWS: { id: CalendarView; label: string }[] = [
@@ -31,6 +33,7 @@ export function CalendarHeader({
   onToday,
   onProfile,
   staffName,
+  avatarUrl,
 }: Props) {
   const week = weekDays(cursor);
   const title =
@@ -42,46 +45,38 @@ export function CalendarHeader({
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.top}>
-        <WoodLogo size="sm" />
-        <View style={{ flex: 1 }} />
-        <Pressable onPress={onProfile} style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {(staffName ?? 'E').trim().charAt(0).toUpperCase() || 'E'}
-          </Text>
-        </Pressable>
+      <View style={styles.pageHead}>
+        <View style={styles.logoRow}>
+          <WoodLogo size="sm" />
+          <View style={{ flex: 1 }} />
+          <Pressable onPress={onProfile} hitSlop={8}>
+            <Avatar name={staffName} uri={avatarUrl} size={36} />
+          </Pressable>
+        </View>
+        <FancyTitle size={28} tilt={-5} style={styles.pageTitle}>
+          Calendario
+        </FancyTitle>
       </View>
 
-      <View style={styles.titleCard}>
-        <View style={styles.titleRow}>
-          <View style={styles.calIcon}>
-            <Ionicons name="calendar" size={20} color={colors.teal} />
-          </View>
-          <View style={{ flex: 1, paddingRight: 4 }}>
-            <FancyTitle color={colors.navy} size={17} tilt={-3}>
-              Calendario del equipo
-            </FancyTitle>
-          </View>
+      <View style={styles.tools}>
+        <View style={styles.nav}>
+          <Pressable onPress={onPrev} style={styles.navBtn}>
+            <Ionicons name="chevron-back" size={18} color={colors.white} />
+          </Pressable>
+          <Text style={styles.navTitle} numberOfLines={1}>
+            {title}
+          </Text>
+          <Pressable onPress={onNext} style={styles.navBtn}>
+            <Ionicons name="chevron-forward" size={18} color={colors.white} />
+          </Pressable>
           <Pressable onPress={onToday} style={styles.hoyBtn}>
             <Ionicons name="today-outline" size={14} color={colors.tealDeep} />
             <Text style={styles.hoyText}>Hoy</Text>
           </Pressable>
         </View>
-      </View>
 
-      <View style={styles.nav}>
-        <Pressable onPress={onPrev} style={styles.navBtn}>
-          <Ionicons name="chevron-back" size={18} color={colors.white} />
-        </Pressable>
-        <Text style={styles.title} numberOfLines={1}>
-          {title}
-        </Text>
-        <Pressable onPress={onNext} style={styles.navBtn}>
-          <Ionicons name="chevron-forward" size={18} color={colors.white} />
-        </Pressable>
+        <SegmentedControl options={VIEWS} value={view} onChange={onView} />
       </View>
-
-      <SegmentedControl options={VIEWS} value={view} onChange={onView} />
     </View>
   );
 }
@@ -92,48 +87,21 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     gap: 10,
   },
-  top: {
+  pageHead: {
+    gap: 4,
+  },
+  logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.teal,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.7)',
+  pageTitle: {
+    marginTop: 4,
+    marginLeft: 2,
   },
-  avatarText: { color: colors.white, fontWeight: '800', fontSize: 15 },
-  titleCard: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: radius.lg,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.95)',
+  tools: {
+    gap: 10,
   },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  calIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.aquaMist,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hoyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.aquaMist,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-  },
-  hoyText: { color: colors.tealDeep, fontWeight: '800', fontSize: 12 },
   nav: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -151,7 +119,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: {
+  navTitle: {
     flex: 1,
     color: colors.white,
     fontSize: 14,
@@ -159,4 +127,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'capitalize',
   },
+  hoyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.aquaMist,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+  },
+  hoyText: { color: colors.tealDeep, fontWeight: '800', fontSize: 12 },
 });

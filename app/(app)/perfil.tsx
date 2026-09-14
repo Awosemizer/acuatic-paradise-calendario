@@ -1,17 +1,128 @@
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import { Avatar } from '@/src/components/Avatar';
+import { Field } from '@/src/components/FormFields';
 import { useAuth } from '@/src/context/AuthContext';
 import { emailToUsername } from '@/src/lib/authUsername';
+import { supabase } from '@/src/lib/supabase';
 import { colors, radius } from '@/src/theme';
 
 export default function PerfilScreen() {
   const router = useRouter();
-  const { profile, user, signOut } = useAuth();
+  const { profile, user, updateProfile, refreshProfile } = useAuth();
 
   const username = profile?.username || emailToUsername(user?.email) || null;
-  const displayName = profile?.full_name || username || 'Personal del salón';
-  const initial = displayName.charAt(0).toUpperCase();
+  const [fullName, setFullName] = useState(profile?.full_name ?? '');
+  const [role, setRole] = useState(profile?.role ?? 'staff');
+  const [bio, setBio] = useState(profile?.bio ?? '');
+  const [avatarUri, setAvatarUri] = useState<string | null>(profile?.avatar_url ?? null);
+  const [localPhoto, setLocalPhoto] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFullName(profile?.full_name ?? '');
+    setRole(profile?.role ?? 'staff');
+    setBio(profile?.bio ?? '');
+    setAvatarUri(profile?.avatar_url ?? null);
+  }, [profile?.full_name, profile?.role, profile?.bio, profile?.avatar_url]);
+
+  async function pickPhoto() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Permiso', 'Necesitamos acceso a tus fotos para cambiar el avatar.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+    setLocalPhoto(result.assets[0].uri);
+  }
+
+  async function uploadAvatar(localUri: string, userId: string): Promise<string | null> {
+    const extGuess = localUri.split('.').pop()?.toLowerCase()?.split('?')[0] || 'jpg';
+    const ext = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extGuess) ? extGuess : 'jpg';
+    const contentType =
+      ext === 'png'
+        ? 'image/png'
+        : ext === 'webp'
+          ? 'image/webp'
+          : ext === 'gif'
+            ? 'image/gif'
+            : 'image/jpeg';
+    const path = `${userId}/avatar-${Date.now()}.${ext === 'jpeg' ? 'jpg' : ext}`;
+
+    const response = await fetch(localUri);
+    const arrayBuffer = await response.arrayBuffer();
+
+    const { error: upErr } = await supabase.storage.from('avatars').upload(path, arrayBuffer, {
+      contentType,
+      upsert: true,
+    });
+    if (upErr) {
+      throw new Error(
+        upErr.message.includes('Bucket not found') || upErr.message.includes('not found')
+          ? 'Bucket avatars no existe. Aplica la migración de storage o créalo en Supabase.'
+          : upErr.message,
+      );
+    }
+
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  async function onSave() {
+    if (!user?.id || saving) return;
+    setSaving(true);
+    setMessage(null);
+    try {
+      let nextAvatar = avatarUri;
+      if (localPhoto) {
+        nextAvatar = await uploadAvatar(localPhoto, user.id);
+        setAvatarUri(nextAvatar);
+        setLocalPhoto(null);
+      }
+
+      const result = await updateProfile({
+        full_name: fullName.trim(),
+        role: role.trim() || 'staff',
+        bio: bio.trim() || null,
+        avatar_url: nextAvatar,
+      });
+
+      if (result.error && result.error.startsWith('Perfil parcial')) {
+        setMessage(result.error);
+      } else if (result.error) {
+        setMessage(result.error);
+      } else {
+        setMessage('Perfil actualizado.');
+        await refreshProfile();
+      }
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : 'No se pudo guardar.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const preview = localPhoto || avatarUri;
+  const displayName = fullName.trim() || username || 'Personal';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -19,39 +130,60 @@ export default function PerfilScreen() {
         <Pressable onPress={() => router.back()}>
           <Text style={styles.back}>‹ Volver</Text>
         </Pressable>
-        <Text style={styles.title}>Perfil</Text>
+        <Text style={styles.title}>Editar perfil</Text>
       </View>
 
-      <View style={styles.card}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initial}</Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+        <View style={styles.card}>
+          <Pressable onPress={pickPhoto} style={styles.avatarWrap}>
+            <Avatar name={displayName} uri={preview} size={96} />
+            <View style={styles.camBadge}>
+              <Ionicons name="camera" size={16} color={colors.white} />
+            </View>
+          </Pressable>
+          <Text style={styles.hint}>Toca la foto para cambiarla</Text>
+          {username ? <Text style={styles.username}>@{username}</Text> : null}
         </View>
-        <Text style={styles.name}>{displayName}</Text>
-        {username ? <Text style={styles.username}>@{username}</Text> : null}
-        <Text style={styles.role}>Calendario compartido · {profile?.role ?? 'staff'}</Text>
-      </View>
 
-      <Text style={styles.note}>
-        Todo el equipo ve y edita las mismas visitas y eventos. Los cambios se sincronizan en tiempo
-        real.
-      </Text>
+        <Field
+          label="Nombre (opcional)"
+          value={fullName}
+          onChangeText={setFullName}
+          placeholder="Tu nombre"
+          autoCapitalize="words"
+        />
+        <Field
+          label="Rol"
+          value={role}
+          onChangeText={setRole}
+          placeholder="staff, recepción, gerente…"
+          autoCapitalize="sentences"
+        />
+        <Field
+          label="Descripción corta"
+          value={bio}
+          onChangeText={setBio}
+          placeholder="Una línea sobre ti en el equipo"
+          multiline
+        />
 
-      <Pressable
-        onPress={async () => {
-          await signOut();
-          router.replace('/login');
-        }}
-        style={styles.out}
-      >
-        <Text style={styles.outText}>Cerrar sesión</Text>
-      </Pressable>
+        {message ? <Text style={styles.message}>{message}</Text> : null}
+
+        <Pressable onPress={onSave} style={styles.save} disabled={saving}>
+          {saving ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.saveText}>Guardar</Text>
+          )}
+        </Pressable>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.offWhite, padding: 20 },
-  head: { marginBottom: 20 },
+  head: { marginBottom: 16 },
   back: { color: colors.sky, fontWeight: '700', fontSize: 16, marginBottom: 8 },
   title: { fontSize: 28, fontWeight: '800', color: colors.ink },
   card: {
@@ -59,28 +191,31 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: 24,
     alignItems: 'center',
-    gap: 6,
+    marginBottom: 16,
   },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.aqua,
+  avatarWrap: { position: 'relative' },
+  camBadge: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.teal,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: colors.white,
   },
-  avatarText: { fontSize: 28, fontWeight: '800', color: colors.navy },
-  name: { fontSize: 20, fontWeight: '800', color: colors.ink },
-  username: { color: colors.muted },
-  role: { color: colors.sky, fontWeight: '700', marginTop: 4 },
-  note: { color: colors.muted, marginTop: 18, lineHeight: 20 },
-  out: {
-    marginTop: 28,
-    backgroundColor: colors.navy,
+  hint: { color: colors.muted, marginTop: 10, fontSize: 13 },
+  username: { color: colors.muted, marginTop: 4 },
+  message: { color: colors.tealDeep, marginTop: 8, marginBottom: 4, fontSize: 13 },
+  save: {
+    marginTop: 18,
+    backgroundColor: colors.teal,
     borderRadius: radius.sm,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  outText: { color: colors.white, fontWeight: '800' },
+  saveText: { color: colors.white, fontWeight: '800', fontSize: 16 },
 });

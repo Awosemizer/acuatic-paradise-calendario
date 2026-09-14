@@ -7,7 +7,7 @@ import { CalendarHeader } from '@/src/components/CalendarHeader';
 import { DayView } from '@/src/components/DayView';
 import { MonthView } from '@/src/components/MonthView';
 import { WeekView } from '@/src/components/WeekView';
-import { ErrorBoundary, SplashFAB, TropicalBackground } from '@/src/components/ui';
+import { ErrorBoundary, FadeSlide, ScreenFocusFade, SplashFAB, TropicalBackground } from '@/src/components/ui';
 import { useAuth } from '@/src/context/AuthContext';
 import { useCalendarData } from '@/src/hooks/useCalendarData';
 import { shiftCursor } from '@/src/lib/dates';
@@ -18,7 +18,9 @@ export default function CalendarioScreen() {
   return (
     <TropicalBackground>
       <ErrorBoundary fallbackTitle="No se pudo abrir el calendario">
-        <CalendarioBody />
+        <ScreenFocusFade>
+          <CalendarioBody />
+        </ScreenFocusFade>
       </ErrorBoundary>
     </TropicalBackground>
   );
@@ -71,6 +73,7 @@ function CalendarioBody() {
         }}
         onProfile={() => router.push('/(app)/(tabs)/mas')}
         staffName={profile?.full_name || profile?.username || 'Equipo'}
+        avatarUrl={profile?.avatar_url}
       />
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -80,21 +83,25 @@ function CalendarioBody() {
           <View style={styles.loading}>
             <ActivityIndicator color={colors.teal} />
           </View>
-        ) : view === 'day' ? (
-          <DayView date={cursor} items={items} onPressItem={openItem} />
-        ) : view === 'week' ? (
-          <WeekView cursor={cursor} items={items} onPressItem={openItem} onPressDay={goDay} />
         ) : (
-          <MonthView
-            cursor={cursor}
-            selected={selectedDay}
-            items={items}
-            onSelectDay={(day) => {
-              setSelectedDay(day);
-              setCursor(day);
-            }}
-            onPressItem={openItem}
-          />
+          <FadeSlide animKey={view}>
+            {view === 'day' ? (
+              <DayView date={cursor} items={items} onPressItem={openItem} />
+            ) : view === 'week' ? (
+              <WeekView cursor={cursor} items={items} onPressItem={openItem} onPressDay={goDay} />
+            ) : (
+              <MonthView
+                cursor={cursor}
+                selected={selectedDay}
+                items={items}
+                onSelectDay={(day) => {
+                  setSelectedDay(day);
+                  setCursor(day);
+                }}
+                onPressItem={openItem}
+              />
+            )}
+          </FadeSlide>
         )}
       </View>
 
