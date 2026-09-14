@@ -3,9 +3,9 @@
 -- Horarios en America/Mexico_City (Pachuca). created_by queda en null (válido).
 --
 -- Cuentas del staff (creadas en Authentication → Users, NO en este seed):
---   ana   → ana@acuaticparadise.local
---   luis  → luis@acuaticparadise.local
---   maria → maria@acuaticparadise.local
+--   ana   → ana@acuaticparadise.com
+--   luis  → luis@acuaticparadise.com
+--   maria → maria@acuaticparadise.com
 
 insert into public.visits (client_name, phone, service_type, starts_at, duration_minutes, notes, status)
 values

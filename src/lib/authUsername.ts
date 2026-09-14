@@ -1,5 +1,5 @@
 /** Dominio sintético: el staff inicia sesión con usuario, no con correo real. */
-export const AUTH_EMAIL_DOMAIN = 'acuaticparadise.local';
+export const AUTH_EMAIL_DOMAIN = 'acuaticparadise.com';
 
 const USERNAME_RE = /^[a-z0-9._]+$/;
 

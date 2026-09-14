@@ -36,7 +36,7 @@ Las tres personas del staff ven y editan las **mismas** visitas y eventos. Los c
 
 La app pide **Usuario** y **Contraseña**. Por debajo, Supabase Auth sigue usando email: cada usuario se mapea a un correo sintético:
 
-`usuario` → `usuario@acuaticparadise.local`
+`usuario` → `usuario@acuaticparadise.com`
 
 (normalizado: minúsculas, sin espacios; solo letras, números, `_` y `.`)
 
@@ -44,9 +44,9 @@ La app pide **Usuario** y **Contraseña**. Por debajo, Supabase Auth sigue usand
 
 | Usuario en la app | Email a crear en Supabase Auth      | Contraseña        |
 |-------------------|-------------------------------------|-------------------|
-| `ana`             | `ana@acuaticparadise.local`         | (la que elijan)   |
-| `luis`            | `luis@acuaticparadise.local`        | (la que elijan)   |
-| `maria`           | `maria@acuaticparadise.local`       | (la que elijan)   |
+| `ana`             | `ana@acuaticparadise.com`         | (la que elijan)   |
+| `luis`            | `luis@acuaticparadise.com`        | (la que elijan)   |
+| `maria`           | `maria@acuaticparadise.com`       | (la que elijan)   |
 
 El trigger `handle_new_user` crea la fila en `profiles` (incluye `username` = local-part del email). En la app, Ana inicia sesión con usuario `ana` y su contraseña — nunca ve el correo.
 
