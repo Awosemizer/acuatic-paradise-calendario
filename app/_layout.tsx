@@ -1,5 +1,6 @@
 import 'react-native-reanimated';
 import { useEffect } from 'react';
+import { Platform, StatusBar as RNStatusBar } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -41,8 +42,16 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
+          {Platform.OS === 'android' ? (
+            <RNStatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+          ) : null}
           <StatusBar style="light" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.offWhite } }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.offWhite },
+            }}
+          >
             <Stack.Screen name="index" />
             <Stack.Screen name="login" />
             <Stack.Screen name="(app)" />

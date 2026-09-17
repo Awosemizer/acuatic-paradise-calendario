@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { AddMenu } from '@/src/components/AddMenu';
 import { CalendarHeader } from '@/src/components/CalendarHeader';
 import { DayView } from '@/src/components/DayView';
@@ -29,6 +30,7 @@ export default function CalendarioScreen() {
 function CalendarioBody() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const safeTop = useSafeTop(8);
   const { profile } = useAuth();
   const [view, setView] = useState<CalendarView>('week');
   const [cursor, setCursor] = useState(() => new Date());
@@ -59,7 +61,7 @@ function CalendarioBody() {
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <View style={[styles.screen, { paddingTop: safeTop }]}>
       <CalendarHeader
         cursor={cursor}
         view={view}

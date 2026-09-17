@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/src/lib/supabase';
@@ -37,6 +38,7 @@ function mapTaskError(message: string, code?: string) {
 
 export default function TareasScreen() {
   const insets = useSafeAreaInsets();
+  const safeTop = useSafeTop(8);
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState('');
@@ -142,7 +144,7 @@ export default function TareasScreen() {
           contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
           ListHeaderComponent={
             <View>
-              <View style={[styles.head, { paddingTop: insets.top + 8 }]}>
+              <View style={[styles.head, { paddingTop: safeTop }]}>
                 <WoodLogo size="sm" />
                 <FancyTitle size={28} tilt={-5} style={styles.title}>
                   Tareas

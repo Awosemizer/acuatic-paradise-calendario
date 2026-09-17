@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -59,6 +60,7 @@ function formatDateTime(value: string) {
 
 export default function BitacoraScreen() {
   const insets = useSafeAreaInsets();
+  const safeTop = useSafeTop(8);
   const { user } = useAuth();
   const { items, loading, error, createItem, updateItem, registerDone, fetchLogs } = useBitacora();
   const [filter, setFilter] = useState<BitacoraFilter>('todas');
@@ -201,7 +203,7 @@ export default function BitacoraScreen() {
           contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
           ListHeaderComponent={
             <View>
-              <View style={[styles.head, { paddingTop: insets.top + 8 }]}>
+              <View style={[styles.head, { paddingTop: safeTop }]}>
                 <WoodLogo size="sm" />
                 <FancyTitle size={28} tilt={-5} style={styles.title}>
                   Bitácora

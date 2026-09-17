@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { parseISO } from 'date-fns';
 import { useAuth } from '@/src/context/AuthContext';
@@ -21,7 +21,7 @@ import type { CalendarItem } from '@/src/types';
 
 export default function InicioScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const safeTop = useSafeTop(8);
   const { profile } = useAuth();
   const today = useMemo(() => new Date(), []);
   const { items, loading } = useCalendarData(today, 'week');
@@ -44,7 +44,7 @@ export default function InicioScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.pad,
-          { paddingTop: insets.top + 8, paddingBottom: 120 },
+          { paddingTop: safeTop, paddingBottom: 120 },
         ]}
       >
         <View style={styles.topRow}>

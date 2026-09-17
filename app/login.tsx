@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/src/context/AuthContext';
@@ -25,6 +26,7 @@ import {
 export default function LoginScreen() {
   const { session, signIn } = useAuth();
   const insets = useSafeAreaInsets();
+  const safeTop = useSafeTop(12);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export default function LoginScreen() {
         style={styles.flex}
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 40 },
+          { paddingTop: safeTop, paddingBottom: insets.bottom + 40 },
         ]}
         bottomPadding={40}
         extraScrollHeight={120}

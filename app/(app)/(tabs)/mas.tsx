@@ -1,17 +1,18 @@
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/src/components/Avatar';
 import { useAuth } from '@/src/context/AuthContext';
 import { emailToUsername } from '@/src/lib/authUsername';
 import { colors, radius, shadow } from '@/src/theme';
 import { FancyTitle, GlassCard, ScreenFocusFade, TropicalBackground, WoodLogo } from '@/src/components/ui';
+import { UpdatesSection } from '@/src/components/UpdatesSection';
 
 export default function MasScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const safeTop = useSafeTop(8);
   const { profile, user, signOut } = useAuth();
 
   const username = profile?.username || emailToUsername(user?.email) || null;
@@ -24,7 +25,7 @@ export default function MasScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.pad,
-            { paddingTop: insets.top + 8, paddingBottom: 120 },
+            { paddingTop: safeTop, paddingBottom: 120 },
           ]}
         >
           <WoodLogo size="md" style={{ alignSelf: 'center', marginBottom: 8 }} />
@@ -67,6 +68,7 @@ export default function MasScreen() {
             <Ionicons name="log-out-outline" size={20} color={colors.white} />
             <Text style={styles.logoutText}>Cerrar sesión</Text>
           </Pressable>
+
 
           <Text style={styles.version}>Versión {version}</Text>
           <Text style={styles.signature}>Creado por Awosemizer</Text>
