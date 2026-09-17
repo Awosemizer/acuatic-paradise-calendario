@@ -17,6 +17,11 @@ type Props = {
   /** Extra scroll padding under content. */
   bottomPadding?: number;
   extraScrollHeight?: number;
+  /**
+   * When false, do not force flex:1 (use inside Modals / sheets that size to content).
+   * Default true for full-screen forms.
+   */
+  fill?: boolean;
 } & Pick<ScrollViewProps, 'keyboardShouldPersistTaps' | 'keyboardDismissMode' | 'onScroll'>;
 
 /**
@@ -31,6 +36,7 @@ export function KeyboardScreen({
   contentContainerStyle,
   bottomPadding = 80,
   extraScrollHeight = 100,
+  fill = true,
   keyboardShouldPersistTaps = 'handled',
   keyboardDismissMode = 'on-drag',
   onScroll,
@@ -39,9 +45,9 @@ export function KeyboardScreen({
 
   return (
     <KeyboardAwareScrollView
-      style={[styles.flex, style]}
+      style={[fill ? styles.flex : styles.shrink, style]}
       contentContainerStyle={[
-        styles.content,
+        fill ? styles.contentGrow : styles.contentShrink,
         { paddingBottom: Math.max(bottomPadding, 40) + insets.bottom },
         contentContainerStyle,
       ]}
@@ -63,5 +69,7 @@ export function KeyboardScreen({
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  content: { flexGrow: 1 },
+  shrink: { flexGrow: 0, flexShrink: 1 },
+  contentGrow: { flexGrow: 1 },
+  contentShrink: { flexGrow: 0 },
 });

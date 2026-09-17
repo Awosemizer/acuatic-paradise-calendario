@@ -103,6 +103,7 @@ function CalendarioBody() {
                   setCursor(day);
                 }}
                 onPressItem={openItem}
+                onOpenFullAgenda={goDay}
               />
             )}
           </FadeSlide>

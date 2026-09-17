@@ -1,4 +1,5 @@
-import { Platform } from 'react-native';
+import { AppState, Linking, Platform, type AppStateStatus } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -9,6 +10,9 @@ export const RELEASES_PAGE = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/
 export const RELEASES_API = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
 export const APK_ASSET_NAME = 'AcuaticParadise-Calendario.apk';
 
+const PENDING_KEY = '@acuatic/pending-apk-install';
+const APK_FILE_NAME = 'AcuaticParadise-Calendario-update.apk';
+
 export type ApkRelease = {
   tag: string;
   version: string;
@@ -16,6 +20,16 @@ export type ApkRelease = {
   apkUrl: string;
   htmlUrl: string;
   publishedAt: string | null;
+};
+
+export type PendingApkInstall = {
+  fileUri: string;
+  apkUrl: string;
+  version: string;
+  tag: string;
+  notes: string;
+  htmlUrl: string;
+  savedAt: string;
 };
 
 function stripTag(tag: string) {
@@ -47,6 +61,18 @@ export function getAppVersion(): string {
     Constants.manifest2?.extra?.expoClient?.version ??
     '0.0.0'
   );
+}
+
+export function getAndroidPackageId(): string {
+  return Constants.expoConfig?.android?.package ?? 'mx.acuaticparadise.calendario';
+}
+
+function apkDestPath(): string {
+  const dir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+  if (!dir) {
+    throw new Error('No hay carpeta local disponible para descargar el APK.');
+  }
+  return `${dir}${APK_FILE_NAME}`;
 }
 
 export async function fetchLatestApkRelease(): Promise<ApkRelease | null> {
@@ -93,18 +119,103 @@ export async function fetchLatestApkRelease(): Promise<ApkRelease | null> {
   return best;
 }
 
-export async function downloadAndInstallApk(
-  apkUrl: string,
-  onProgress?: (ratio: number) => void,
-): Promise<void> {
+export async function getPendingApkInstall(): Promise<PendingApkInstall | null> {
+  try {
+    const raw = await AsyncStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PendingApkInstall;
+    if (!parsed?.fileUri) return null;
+    const info = await FileSystem.getInfoAsync(parsed.fileUri);
+    if (!info.exists) {
+      await clearPendingApkInstall();
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export async function savePendingApkInstall(pending: PendingApkInstall): Promise<void> {
+  await AsyncStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+}
+
+export async function clearPendingApkInstall(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(PENDING_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+/** Opens Android settings so the user can allow installs from this app. */
+export async function openUnknownAppSourcesSettings(): Promise<void> {
+  if (Platform.OS !== 'android') return;
+  const pkg = getAndroidPackageId();
+  try {
+    await IntentLauncher.startActivityAsync(
+      IntentLauncher.ActivityAction.MANAGE_UNKNOWN_APP_SOURCES,
+      { data: `package:${pkg}` },
+    );
+  } catch {
+    try {
+      await IntentLauncher.startActivityAsync(
+        IntentLauncher.ActivityAction.APPLICATION_DETAILS_SETTINGS,
+        { data: `package:${pkg}` },
+      );
+    } catch {
+      try {
+        await Linking.openSettings();
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
+/** Launch the package installer for a local APK file URI. */
+export async function launchApkInstaller(fileUri: string): Promise<void> {
   if (Platform.OS !== 'android') {
     throw new Error('La instalación automática solo está disponible en Android.');
   }
-  const dir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
-  if (!dir) {
-    throw new Error('No hay carpeta local disponible para descargar el APK.');
+  const contentUri = await FileSystem.getContentUriAsync(fileUri);
+  await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+    data: contentUri,
+    flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+    type: 'application/vnd.android.package-archive',
+  });
+}
+
+/**
+ * Re-fire install for a previously downloaded APK (no re-download).
+ * Optionally open unknown-sources settings first.
+ */
+export async function continuePendingApkInstall(options?: {
+  openSettingsFirst?: boolean;
+}): Promise<PendingApkInstall | null> {
+  const pending = await getPendingApkInstall();
+  if (!pending) return null;
+  if (options?.openSettingsFirst) {
+    await openUnknownAppSourcesSettings();
   }
-  const dest = `${dir}AcuaticParadise-Calendario-update.apk`;
+  await launchApkInstaller(pending.fileUri);
+  return pending;
+}
+
+/**
+ * Download APK to a stable cache path, persist pending install metadata,
+ * then open the Android package installer (VIEW intent).
+ * If the installer cannot start (often missing "instalar apps desconocidas"),
+ * opens MANAGE_UNKNOWN_APP_SOURCES and keeps pending so the user can continue.
+ */
+export async function downloadAndInstallApk(
+  release: ApkRelease,
+  onProgress?: (ratio: number) => void,
+): Promise<PendingApkInstall> {
+  if (Platform.OS !== 'android') {
+    throw new Error('La instalación automática solo está disponible en Android.');
+  }
+  const dest = apkDestPath();
 
   try {
     await FileSystem.deleteAsync(dest, { idempotent: true });
@@ -113,7 +224,7 @@ export async function downloadAndInstallApk(
   }
 
   const download = FileSystem.createDownloadResumable(
-    apkUrl,
+    release.apkUrl,
     dest,
     {},
     (progress) => {
@@ -129,10 +240,60 @@ export async function downloadAndInstallApk(
     throw new Error('La descarga del APK falló.');
   }
 
-  const contentUri = await FileSystem.getContentUriAsync(result.uri);
-  await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-    data: contentUri,
-    flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
-    type: 'application/vnd.android.package-archive',
-  });
+  const pending: PendingApkInstall = {
+    fileUri: result.uri,
+    apkUrl: release.apkUrl,
+    version: release.version,
+    tag: release.tag,
+    notes: release.notes,
+    htmlUrl: release.htmlUrl,
+    savedAt: new Date().toISOString(),
+  };
+  await savePendingApkInstall(pending);
+
+  try {
+    await launchApkInstaller(result.uri);
+  } catch {
+    // Likely needs unknown-sources permission — guide the user there.
+    try {
+      await openUnknownAppSourcesSettings();
+    } catch {
+      // ignore
+    }
+  }
+
+  return pending;
+}
+
+/**
+ * When the app resumes and a pending APK still exists, re-launch the installer once
+ * (debounced). Returns an unsubscribe function.
+ */
+export function watchPendingApkInstallOnResume(
+  onPending: (pending: PendingApkInstall) => void,
+): () => void {
+  if (Platform.OS !== 'android') return () => undefined;
+
+  let lastFiredAt = 0;
+  const DEBOUNCE_MS = 2500;
+
+  const handler = (next: AppStateStatus) => {
+    if (next !== 'active') return;
+    const now = Date.now();
+    if (now - lastFiredAt < DEBOUNCE_MS) return;
+    lastFiredAt = now;
+    void (async () => {
+      const pending = await getPendingApkInstall();
+      if (!pending) return;
+      onPending(pending);
+      try {
+        await launchApkInstaller(pending.fileUri);
+      } catch {
+        // Still blocked — UI offers Continuar instalación / abrir permiso.
+      }
+    })();
+  };
+
+  const sub = AppState.addEventListener('change', handler);
+  return () => sub.remove();
 }

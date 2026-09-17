@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Switch,
@@ -13,7 +15,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/src/components/Avatar';
 import { KeyboardScreen } from '@/src/components/KeyboardScreen';
-import { GlassCard } from '@/src/components/ui';
 import { useAuth } from '@/src/context/AuthContext';
 import { isAdmin, roleLabel } from '@/src/lib/permissions';
 import { supabase } from '@/src/lib/supabase';
@@ -191,7 +192,7 @@ export function TeamUsersSection() {
         const name = row.full_name || row.username || 'Sin nombre';
         const title = row.job_title || roleLabel(row.role);
         return (
-          <View key={row.id} style={[styles.row, shadow.card]}>
+          <View key={row.id} style={styles.row}>
             <Avatar name={name} uri={row.avatar_url} size={44} />
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{name}</Text>
@@ -284,84 +285,103 @@ function UserFormModal(props: {
   } = props;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <View style={styles.backdrop}>
-        <GlassCard strong padding={16} style={styles.sheet}>
-          <KeyboardScreen bottomPadding={40} extraScrollHeight={140}>
-            <Text style={styles.modalTitle}>{title}</Text>
-            {subtitle ? <Text style={styles.username}>{subtitle}</Text> : null}
-            {showUsername ? (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+      onRequestClose={onCancel}
+    >
+      <KeyboardAvoidingView
+        style={styles.modalRoot}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Pressable style={styles.backdropPress} onPress={onCancel} accessibilityRole="button" />
+        <View style={styles.sheet} pointerEvents="box-none">
+          <View style={styles.sheetInner}>
+            <KeyboardScreen
+              fill={false}
+              bottomPadding={28}
+              extraScrollHeight={120}
+              style={styles.sheetScroll}
+              contentContainerStyle={styles.sheetContent}
+            >
+              <Text style={styles.modalTitle}>{title}</Text>
+              {subtitle ? <Text style={styles.username}>{subtitle}</Text> : null}
+              {showUsername ? (
+                <Field
+                  label="Usuario"
+                  value={draft.username}
+                  onChangeText={(v) => setDraft({ ...draft, username: v })}
+                  autoCapitalize="none"
+                />
+              ) : null}
               <Field
-                label="Usuario"
-                value={draft.username}
-                onChangeText={(v) => setDraft({ ...draft, username: v })}
+                label={passwordOptional ? 'Nueva contraseña (opcional)' : 'Contraseña'}
+                value={draft.password}
+                onChangeText={(v) => setDraft({ ...draft, password: v })}
+                secureTextEntry
                 autoCapitalize="none"
               />
-            ) : null}
-            <Field
-              label={passwordOptional ? 'Nueva contraseña (opcional)' : 'Contraseña'}
-              value={draft.password}
-              onChangeText={(v) => setDraft({ ...draft, password: v })}
-              secureTextEntry
-              autoCapitalize="none"
-            />
-            <Field
-              label="Nombre"
-              value={draft.full_name}
-              onChangeText={(v) => setDraft({ ...draft, full_name: v })}
-            />
-            <Field
-              label="Cargo"
-              value={draft.job_title}
-              onChangeText={(v) => setDraft({ ...draft, job_title: v })}
-              placeholder="Ej. Mesero, Recepción…"
-            />
-            <Text style={styles.label}>Rol</Text>
-            <View style={styles.chips}>
-              {(['staff', 'admin', 'ceo'] as const).map((r) => (
-                <Pressable
-                  key={r}
-                  onPress={() => setDraft({ ...draft, role: r })}
-                  style={[styles.chip, draft.role === r && styles.chipOn]}
-                >
-                  <Text style={[styles.chipText, draft.role === r && styles.chipTextOn]}>
-                    {roleLabel(r)}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            {draft.role === 'staff' ? (
-              <View style={{ gap: 8, marginTop: 10 }}>
-                <Toggle
-                  label="Editar calendario"
-                  value={draft.can_edit_calendar}
-                  onChange={(v) => setDraft({ ...draft, can_edit_calendar: v })}
-                />
-                <Toggle
-                  label="Editar bitácora"
-                  value={draft.can_edit_bitacora}
-                  onChange={(v) => setDraft({ ...draft, can_edit_bitacora: v })}
-                />
-                <Toggle
-                  label="Editar tareas del equipo"
-                  value={draft.can_edit_tasks}
-                  onChange={(v) => setDraft({ ...draft, can_edit_tasks: v })}
-                />
+              <Field
+                label="Nombre"
+                value={draft.full_name}
+                onChangeText={(v) => setDraft({ ...draft, full_name: v })}
+              />
+              <Field
+                label="Cargo"
+                value={draft.job_title}
+                onChangeText={(v) => setDraft({ ...draft, job_title: v })}
+                placeholder="Ej. Mesero, Recepción…"
+              />
+              <Text style={styles.label}>Rol</Text>
+              <View style={styles.chips}>
+                {(['staff', 'admin', 'ceo'] as const).map((r) => (
+                  <Pressable
+                    key={r}
+                    onPress={() => setDraft({ ...draft, role: r })}
+                    style={[styles.chip, draft.role === r && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipText, draft.role === r && styles.chipTextOn]}>
+                      {roleLabel(r)}
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
-            ) : (
-              <Text style={styles.hint}>CEO/Admin tienen todos los permisos.</Text>
-            )}
-            <View style={styles.actions}>
-              <Pressable style={styles.cancel} onPress={onCancel}>
-                <Text style={styles.cancelText}>Cancelar</Text>
-              </Pressable>
-              <Pressable style={styles.ok} onPress={onSubmit} disabled={saving}>
-                <Text style={styles.okText}>{saving ? '…' : submitLabel}</Text>
-              </Pressable>
-            </View>
-          </KeyboardScreen>
-        </GlassCard>
-      </View>
+              {draft.role === 'staff' ? (
+                <View style={{ gap: 8, marginTop: 10 }}>
+                  <Toggle
+                    label="Editar calendario"
+                    value={draft.can_edit_calendar}
+                    onChange={(v) => setDraft({ ...draft, can_edit_calendar: v })}
+                  />
+                  <Toggle
+                    label="Editar bitácora"
+                    value={draft.can_edit_bitacora}
+                    onChange={(v) => setDraft({ ...draft, can_edit_bitacora: v })}
+                  />
+                  <Toggle
+                    label="Editar tareas del equipo"
+                    value={draft.can_edit_tasks}
+                    onChange={(v) => setDraft({ ...draft, can_edit_tasks: v })}
+                  />
+                </View>
+              ) : (
+                <Text style={styles.hint}>CEO/Admin tienen todos los permisos.</Text>
+              )}
+              <View style={styles.actions}>
+                <Pressable style={styles.cancel} onPress={onCancel}>
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </Pressable>
+                <Pressable style={styles.ok} onPress={onSubmit} disabled={saving}>
+                  <Text style={styles.okText}>{saving ? '…' : submitLabel}</Text>
+                </Pressable>
+              </View>
+            </KeyboardScreen>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -419,11 +439,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.glassStrong,
     borderRadius: radius.lg,
     padding: 12,
+    overflow: 'hidden',
+    ...shadow.card,
   },
   name: { fontWeight: '800', color: colors.ink, fontSize: 15 },
   username: { color: colors.muted, fontSize: 13 },
   meta: { color: colors.tealDeep, fontWeight: '700', fontSize: 12, marginTop: 2 },
-  rowActions: { flexDirection: 'row', gap: 12 },
+  rowActions: { flexDirection: 'row', gap: 12, flexShrink: 0 },
   addBtn: {
     marginTop: 8,
     alignSelf: 'flex-start',
@@ -437,15 +459,29 @@ const styles = StyleSheet.create({
   },
   addText: { color: colors.white, fontWeight: '800', fontSize: 14 },
   error: { color: colors.danger, marginBottom: 8 },
-  backdrop: {
-    flex: 1,
+  modalRoot: { flex: 1, justifyContent: 'center' },
+  backdropPress: {
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(11,31,58,0.55)',
-    justifyContent: 'center',
-    padding: 16,
   },
-  sheet: { maxHeight: '90%' },
+  sheet: {
+    maxHeight: '90%',
+    marginHorizontal: 16,
+    justifyContent: 'center',
+  },
+  sheetInner: {
+    backgroundColor: colors.glassStrong,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    overflow: 'hidden',
+    maxHeight: '100%',
+    ...shadow.card,
+  },
+  sheetScroll: { flexGrow: 0 },
+  sheetContent: { padding: 16, paddingBottom: 20 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: colors.ink, marginBottom: 4 },
-  label: { color: colors.navy, fontWeight: '700', marginBottom: 6, fontSize: 13 },
+  label: { color: colors.navy, fontWeight: '700', marginBottom: 6, fontSize: 13, marginTop: 10 },
   input: {
     backgroundColor: colors.skyMist,
     borderRadius: radius.sm,

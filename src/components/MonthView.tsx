@@ -12,11 +12,12 @@ type Props = {
   items: CalendarItem[];
   onSelectDay: (day: Date) => void;
   onPressItem: (item: CalendarItem) => void;
+  onOpenFullAgenda?: (day: Date) => void;
 };
 
 const DOW = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
-export function MonthView({ cursor, selected, items, onSelectDay, onPressItem }: Props) {
+export function MonthView({ cursor, selected, items, onSelectDay, onPressItem, onOpenFullAgenda }: Props) {
   const days = monthGrid(cursor);
   const selectedItems = items.filter((item) => isSameDay(parseISO(item.data.starts_at), selected));
 
@@ -82,7 +83,14 @@ export function MonthView({ cursor, selected, items, onSelectDay, onPressItem }:
             <Text style={styles.legendText}>Eventos</Text>
           </View>
         </View>
-        <Text style={styles.agendaLink}>Ver agenda completa →</Text>
+        <Pressable
+          onPress={() => onOpenFullAgenda?.(selected)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Ver agenda completa"
+        >
+          <Text style={styles.agendaLink}>Ver agenda completa →</Text>
+        </Pressable>
       </View>
 
       <View style={styles.dayHead}>

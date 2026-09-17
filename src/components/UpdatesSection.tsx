@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -9,11 +9,17 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
+  clearPendingApkInstall,
   compareSemver,
+  continuePendingApkInstall,
   downloadAndInstallApk,
   fetchLatestApkRelease,
   getAppVersion,
+  getPendingApkInstall,
+  openUnknownAppSourcesSettings,
+  watchPendingApkInstallOnResume,
   type ApkRelease,
+  type PendingApkInstall,
 } from '@/src/lib/appUpdates';
 import { colors, radius, shadow } from '@/src/theme';
 import { GlassCard } from '@/src/components/ui';
@@ -24,12 +30,38 @@ type Status =
   | { kind: 'upToDate' }
   | { kind: 'available'; release: ApkRelease }
   | { kind: 'downloading'; progress: number }
-  | { kind: 'installing' }
+  | { kind: 'installing'; pending: PendingApkInstall }
+  | { kind: 'permissionNeeded'; pending: PendingApkInstall }
   | { kind: 'error'; message: string };
 
 export function UpdatesSection() {
   const version = getAppVersion();
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
+
+  const restorePending = useCallback(async () => {
+    const pending = await getPendingApkInstall();
+    if (!pending) return;
+    // If we already installed a newer/same version, clear stale pending.
+    if (compareSemver(version, pending.version) >= 0) {
+      await clearPendingApkInstall();
+      return;
+    }
+    setStatus({ kind: 'permissionNeeded', pending });
+  }, [version]);
+
+  useEffect(() => {
+    void restorePending();
+  }, [restorePending]);
+
+  useEffect(() => {
+    return watchPendingApkInstallOnResume((pending) => {
+      if (compareSemver(version, pending.version) >= 0) {
+        void clearPendingApkInstall();
+        return;
+      }
+      setStatus({ kind: 'permissionNeeded', pending });
+    });
+  }, [version]);
 
   const check = useCallback(async () => {
     setStatus({ kind: 'checking' });
@@ -45,6 +77,7 @@ export function UpdatesSection() {
       if (compareSemver(latest.version, version) > 0) {
         setStatus({ kind: 'available', release: latest });
       } else {
+        await clearPendingApkInstall();
         setStatus({ kind: 'upToDate' });
       }
     } catch (e) {
@@ -58,11 +91,16 @@ export function UpdatesSection() {
   const install = useCallback(async (release: ApkRelease) => {
     setStatus({ kind: 'downloading', progress: 0 });
     try {
-      await downloadAndInstallApk(release.apkUrl, (ratio) => {
+      const pending = await downloadAndInstallApk(release, (ratio) => {
         setStatus({ kind: 'downloading', progress: ratio });
       });
-      setStatus({ kind: 'installing' });
+      setStatus({ kind: 'permissionNeeded', pending });
     } catch (e) {
+      const pending = await getPendingApkInstall();
+      if (pending) {
+        setStatus({ kind: 'permissionNeeded', pending });
+        return;
+      }
       setStatus({
         kind: 'error',
         message:
@@ -71,6 +109,41 @@ export function UpdatesSection() {
             : 'No se pudo descargar o instalar el APK. Revisa el permiso de instalar apps desconocidas.',
       });
     }
+  }, []);
+
+  const continueInstall = useCallback(async (openSettingsFirst = false) => {
+    try {
+      const pending = await continuePendingApkInstall({ openSettingsFirst });
+      if (!pending) {
+        setStatus({ kind: 'idle' });
+        return;
+      }
+      setStatus({ kind: 'installing', pending });
+      // After launching installer, keep permissionNeeded UI so user can retry.
+      setTimeout(() => {
+        setStatus((s) =>
+          s.kind === 'installing' ? { kind: 'permissionNeeded', pending: s.pending } : s,
+        );
+      }, 800);
+    } catch (e) {
+      const pending = await getPendingApkInstall();
+      if (pending) {
+        setStatus({ kind: 'permissionNeeded', pending });
+      } else {
+        setStatus({
+          kind: 'error',
+          message:
+            e instanceof Error
+              ? e.message
+              : 'No se pudo continuar la instalación.',
+        });
+      }
+    }
+  }, []);
+
+  const cancelPending = useCallback(async () => {
+    await clearPendingApkInstall();
+    setStatus({ kind: 'idle' });
   }, []);
 
   // Actualizaciones is Android/APK only — never show on web.
@@ -141,6 +214,34 @@ export function UpdatesSection() {
         </Text>
       ) : null}
 
+      {status.kind === 'permissionNeeded' ? (
+        <View style={styles.available}>
+          <Text style={styles.warnTitle}>Permiso necesario</Text>
+          <Text style={styles.hint}>
+            Versión {status.pending.version} ya descargada. Si Android pidió permitir
+            «instalar apps desconocidas», actívalo y vuelve aquí — o toca Continuar
+            instalación. No hace falta volver a descargar.
+          </Text>
+          <Pressable
+            onPress={() => continueInstall(false)}
+            style={[styles.btn, styles.btnPrimary]}
+          >
+            <Ionicons name="construct-outline" size={18} color={colors.white} />
+            <Text style={styles.btnPrimaryText}>Continuar instalación</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => void openUnknownAppSourcesSettings()}
+            style={[styles.btn, styles.btnSecondary]}
+          >
+            <Ionicons name="settings-outline" size={18} color={colors.navy} />
+            <Text style={styles.btnSecondaryText}>Abrir permiso de instalación</Text>
+          </Pressable>
+          <Pressable onPress={cancelPending} style={styles.cancelLink}>
+            <Text style={styles.cancelLinkText}>Cancelar instalación pendiente</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       {status.kind === 'error' ? <Text style={styles.err}>{status.message}</Text> : null}
     </GlassCard>
   );
@@ -154,6 +255,7 @@ const styles = StyleSheet.create({
   hint: { color: colors.muted, fontSize: 13, lineHeight: 18, marginBottom: 10, flexShrink: 1 },
   ok: { color: colors.success, fontWeight: '700', marginTop: 8 },
   err: { color: colors.danger, marginTop: 8, fontSize: 13, lineHeight: 18 },
+  warnTitle: { fontWeight: '800', color: colors.coral, fontSize: 15 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
   available: { gap: 10 },
   newVer: { fontWeight: '800', color: colors.tealDeep, fontSize: 15 },
@@ -170,6 +272,10 @@ const styles = StyleSheet.create({
   },
   btnPrimary: { backgroundColor: colors.teal },
   btnPrimaryText: { color: colors.white, fontWeight: '800', fontSize: 14 },
+  btnSecondary: { backgroundColor: colors.skyMist },
+  btnSecondaryText: { color: colors.navy, fontWeight: '800', fontSize: 14 },
+  cancelLink: { alignItems: 'center', paddingVertical: 4 },
+  cancelLinkText: { color: colors.muted, fontWeight: '600', fontSize: 13 },
   progressWrap: { marginTop: 4, gap: 8 },
   barBg: {
     height: 8,
