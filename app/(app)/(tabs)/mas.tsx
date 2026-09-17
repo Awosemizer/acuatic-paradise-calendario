@@ -9,6 +9,8 @@ import { emailToUsername } from '@/src/lib/authUsername';
 import { colors, radius, shadow } from '@/src/theme';
 import { FancyTitle, GlassCard, ScreenFocusFade, TropicalBackground, WoodLogo } from '@/src/components/ui';
 import { UpdatesSection } from '@/src/components/UpdatesSection';
+import { TeamUsersSection } from '@/src/components/TeamUsersSection';
+import { isAdmin, roleLabel } from '@/src/lib/permissions';
 
 export default function MasScreen() {
   const router = useRouter();
@@ -37,7 +39,7 @@ export default function MasScreen() {
             <Avatar name={displayName} uri={profile?.avatar_url} size={72} />
             <Text style={styles.name}>{displayName}</Text>
             {username ? <Text style={styles.username}>@{username}</Text> : null}
-            <Text style={styles.role}>Rol · {profile?.role ?? 'staff'}</Text>
+            <Text style={styles.role}>{profile?.job_title || roleLabel(profile?.role)} · {roleLabel(profile?.role)}</Text>
             {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
           </GlassCard>
 
@@ -50,6 +52,8 @@ export default function MasScreen() {
           </GlassCard>
 
           {Platform.OS === 'android' ? <UpdatesSection /> : null}
+
+          <TeamUsersSection />
 
           <Pressable
             onPress={() => router.push('/(app)/perfil')}

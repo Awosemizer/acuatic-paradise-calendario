@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -12,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/context/AuthContext';
+import { canEditTasks } from '@/src/lib/permissions';
 import { supabase } from '@/src/lib/supabase';
 import { colors, radius, shadow } from '@/src/theme';
 import {
@@ -39,7 +41,8 @@ function mapTaskError(message: string, code?: string) {
 export default function TareasScreen() {
   const insets = useSafeAreaInsets();
   const safeTop = useSafeTop(8);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const allowSharedEdit = canEditTasks(profile);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState('');
   const [scope, setScope] = useState<TaskScope>('shared');
@@ -101,22 +104,52 @@ export default function TareasScreen() {
 
   async function addTask() {
     const t = title.trim();
-    if (!t || saving) return;
-    setSaving(true);
+    if (saving) return;
+    if (!t) {
+      const msg = 'Escribe un título para la tarea.';
+      setError(msg);
+      Alert.alert('Tarea', msg);
+      return;
+    }
+    if (!user?.id) {
+      const msg = 'No hay sesión activa. Vuelve a iniciar sesión.';
+      setError(msg);
+      Alert.alert('Tarea', msg);
+      return;
+    }
     const isPersonal = scope === 'personal';
-    const { error: err } = await supabase.from('tasks').insert({
-      title: t,
-      done: false,
-      created_by: user?.id ?? null,
-      is_personal: isPersonal,
-    });
-    setSaving(false);
-    if (err) setError(mapTaskError(err.message, err.code));
-    else {
-      setTitle('');
-      load();
+    if (!isPersonal && !allowSharedEdit) {
+      const msg = 'No tienes permiso para crear tareas del equipo.';
+      setError(msg);
+      Alert.alert('Permiso', msg);
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const { error: err } = await supabase.from('tasks').insert({
+        title: t,
+        done: false,
+        created_by: user.id,
+        is_personal: isPersonal,
+      });
+      if (err) {
+        const msg = mapTaskError(err.message, err.code);
+        setError(msg);
+        Alert.alert('No se pudo guardar', msg);
+      } else {
+        setTitle('');
+        await load();
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Error al guardar la tarea';
+      setError(msg);
+      Alert.alert('No se pudo guardar', msg);
+    } finally {
+      setSaving(false);
     }
   }
+
 
   async function toggle(task: Task) {
     await supabase.from('tasks').update({ done: !task.done }).eq('id', task.id);
@@ -139,7 +172,7 @@ export default function TareasScreen() {
           enableAutomaticScroll
           extraScrollHeight={100}
           keyboardOpeningTime={0}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
           keyboardDismissMode="on-drag"
           contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
           ListHeaderComponent={
@@ -150,7 +183,7 @@ export default function TareasScreen() {
                   Tareas
                 </FancyTitle>
                 <Text style={styles.sub}>
-                  {scope === 'personal' ? 'Solo tú las ves' : 'Visibles para todo el equipo'}
+                  {scope === 'personal' ? 'Solo tú las ves' : allowSharedEdit ? 'Visibles para todo el equipo' : 'Visibles para el equipo (solo lectura)'}
                 </Text>
               </View>
 
@@ -165,6 +198,7 @@ export default function TareasScreen() {
                 />
               </View>
 
+              {(allowSharedEdit || scope === 'personal') ? (
               <View style={styles.composer}>
                 <TextInput
                   value={title}
@@ -173,11 +207,24 @@ export default function TareasScreen() {
                   placeholderTextColor={colors.muted}
                   style={styles.input}
                   onSubmitEditing={addTask}
+                  returnKeyType="done"
                 />
-                <Pressable onPress={addTask} style={styles.addBtn} disabled={saving}>
+                <Pressable
+                  onPress={addTask}
+                  style={styles.addBtn}
+                  disabled={saving}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Agregar tarea"
+                >
                   <Ionicons name="add" size={26} color={colors.white} />
                 </Pressable>
               </View>
+              ) : (
+                <Text style={[styles.sub, { marginHorizontal: 16 }]}>
+                  Solo lectura en tareas del equipo. Un admin puede darte permiso.
+                </Text>
+              )}
 
               {error ? (
                 <GlassCard style={{ marginHorizontal: 16, marginBottom: 8 }} padding={12}>

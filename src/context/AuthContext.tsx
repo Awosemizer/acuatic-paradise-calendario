@@ -11,7 +11,6 @@ import type { Profile } from '@/src/types';
 
 type ProfileUpdate = {
   full_name?: string;
-  role?: string;
   bio?: string | null;
   avatar_url?: string | null;
 };
@@ -36,8 +35,13 @@ function mapProfile(data: Record<string, unknown> | null): Profile | null {
     full_name: String(data.full_name ?? ''),
     username: (data.username as string | null) ?? null,
     role: String(data.role ?? 'staff'),
+    job_title: (data.job_title as string | null | undefined) ?? null,
     avatar_url: (data.avatar_url as string | null | undefined) ?? null,
     bio: (data.bio as string | null | undefined) ?? null,
+    can_edit_calendar: Boolean(data.can_edit_calendar),
+    can_edit_bitacora: Boolean(data.can_edit_bitacora),
+    can_edit_tasks: Boolean(data.can_edit_tasks),
+    is_active: data.is_active === false ? false : true,
     created_at: String(data.created_at ?? ''),
   };
 }
@@ -130,7 +134,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const payload: Record<string, unknown> = {};
       if (patch.full_name !== undefined) payload.full_name = patch.full_name;
-      if (patch.role !== undefined) payload.role = patch.role;
       if (patch.bio !== undefined) payload.bio = patch.bio;
       if (patch.avatar_url !== undefined) payload.avatar_url = patch.avatar_url;
 
@@ -141,7 +144,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Retry without optional columns if migration not applied yet
           const fallback: Record<string, unknown> = {};
           if (patch.full_name !== undefined) fallback.full_name = patch.full_name;
-          if (patch.role !== undefined) fallback.role = patch.role;
           if (Object.keys(fallback).length === 0) {
             return {
               error:

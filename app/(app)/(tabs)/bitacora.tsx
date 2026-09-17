@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareFlatList, KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/src/context/AuthContext';
+import { canEditBitacora } from '@/src/lib/permissions';
 import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import {
   FancyTitle,
@@ -61,7 +64,8 @@ function formatDateTime(value: string) {
 export default function BitacoraScreen() {
   const insets = useSafeAreaInsets();
   const safeTop = useSafeTop(8);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const allowEdit = canEditBitacora(profile);
   const { items, loading, error, createItem, updateItem, registerDone, fetchLogs } = useBitacora();
   const [filter, setFilter] = useState<BitacoraFilter>('todas');
   const [selected, setSelected] = useState<BitacoraItem | null>(null);
@@ -216,10 +220,12 @@ export default function BitacoraScreen() {
               </View>
 
               <View style={styles.toolbar}>
+                {allowEdit ? (
                 <Pressable onPress={openCreate} style={styles.addBtn}>
                   <Ionicons name="add" size={22} color={colors.white} />
                   <Text style={styles.addBtnText}>Nuevo ítem</Text>
                 </Pressable>
+                ) : null}
               </View>
 
               {error ? (
@@ -325,6 +331,7 @@ export default function BitacoraScreen() {
 
                   {actionError ? <Text style={styles.error}>{actionError}</Text> : null}
 
+                  {allowEdit ? (
                   <Pressable
                     style={styles.primaryBtn}
                     onPress={() => {
@@ -335,10 +342,13 @@ export default function BitacoraScreen() {
                     <Ionicons name="checkmark-circle" size={20} color={colors.white} />
                     <Text style={styles.primaryBtnText}>Registrar mantenimiento</Text>
                   </Pressable>
+                  ) : null}
+                  {allowEdit ? (
                   <Pressable style={styles.secondaryBtn} onPress={() => openEdit(selected)}>
                     <Ionicons name="create-outline" size={18} color={colors.tealDeep} />
                     <Text style={styles.secondaryBtnText}>Editar ítem</Text>
                   </Pressable>
+                  ) : null}
 
                   <Text style={styles.sectionLabel}>Historial</Text>
                   {logsLoading ? (
@@ -370,7 +380,21 @@ export default function BitacoraScreen() {
           onRequestClose={() => setRegisterOpen(false)}
         >
           <Pressable style={styles.centerBackdrop} onPress={() => setRegisterOpen(false)}>
-            <Pressable style={styles.formSheet} onPress={() => {}}>
+            <KeyboardAvoidingView
+            behavior="padding"
+            style={{ width: '100%', maxWidth: 420 }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
+          >
+            <Pressable style={[styles.formSheet, { maxHeight: '88%' }]} onPress={() => {}}>
+              <KeyboardAwareScrollView
+                enableOnAndroid
+                enableAutomaticScroll
+                extraScrollHeight={140}
+                keyboardOpeningTime={0}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 12 }}
+              >
               <Text style={styles.formTitle}>Registrar mantenimiento</Text>
               <Text style={styles.formHint}>
                 Se marcará como hecho ahora y quedará en el historial.
@@ -392,7 +416,9 @@ export default function BitacoraScreen() {
                   <Text style={styles.okText}>{saving ? 'Guardando…' : 'Registrar'}</Text>
                 </Pressable>
               </View>
+            </KeyboardAwareScrollView>
             </Pressable>
+          </KeyboardAvoidingView>
           </Pressable>
         </Modal>
 
@@ -404,7 +430,21 @@ export default function BitacoraScreen() {
           onRequestClose={() => setFormOpen(false)}
         >
           <Pressable style={styles.centerBackdrop} onPress={() => setFormOpen(false)}>
-            <Pressable style={styles.formSheet} onPress={() => {}}>
+            <KeyboardAvoidingView
+            behavior="padding"
+            style={{ width: '100%', maxWidth: 420 }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
+          >
+            <Pressable style={[styles.formSheet, { maxHeight: '88%' }]} onPress={() => {}}>
+              <KeyboardAwareScrollView
+                enableOnAndroid
+                enableAutomaticScroll
+                extraScrollHeight={140}
+                keyboardOpeningTime={0}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 12 }}
+              >
               <Text style={styles.formTitle}>{editing ? 'Editar ítem' : 'Nuevo ítem'}</Text>
               <Text style={styles.label}>Título</Text>
               <TextInput
@@ -458,7 +498,9 @@ export default function BitacoraScreen() {
                   <Text style={styles.okText}>{saving ? 'Guardando…' : 'Guardar'}</Text>
                 </Pressable>
               </View>
+            </KeyboardAwareScrollView>
             </Pressable>
+          </KeyboardAvoidingView>
           </Pressable>
         </Modal>
       </ScreenFocusFade>

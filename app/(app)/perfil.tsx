@@ -101,7 +101,6 @@ export default function PerfilScreen() {
 
       const result = await updateProfile({
         full_name: fullName.trim(),
-        role: role.trim() || 'staff',
         bio: bio.trim() || null,
         avatar_url: nextAvatar,
       });
@@ -146,19 +145,19 @@ export default function PerfilScreen() {
         </View>
 
         <Field
-          label="Nombre (opcional)"
+          label="Nombre"
           value={fullName}
           onChangeText={setFullName}
           placeholder="Tu nombre"
           autoCapitalize="words"
         />
-        <Field
-          label="Rol"
-          value={role}
-          onChangeText={setRole}
-          placeholder="staff, recepción, gerente…"
-          autoCapitalize="sentences"
-        />
+        {/* Rol/cargo solo editable por admins en Más */}
+        {(profile?.job_title || profile?.role) ? (
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: colors.navy, fontWeight: "700", marginBottom: 6, fontSize: 13 }}>Cargo</Text>
+            <Text style={{ color: colors.ink, fontSize: 15 }}>{profile?.job_title || profile?.role}</Text>
+          </View>
+        ) : null}
         <Field
           label="Descripción corta"
           value={bio}

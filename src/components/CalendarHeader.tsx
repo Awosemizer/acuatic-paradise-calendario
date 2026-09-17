@@ -85,12 +85,14 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   pageHead: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 2,
     position: 'relative',
   },
   pageTitle: {
     marginTop: 8,
+    marginLeft: 4,
+    alignSelf: 'flex-start',
   },
   avatarBtn: {
     position: 'absolute',

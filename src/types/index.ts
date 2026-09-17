@@ -1,12 +1,19 @@
 export type VisitStatus = 'programada' | 'completada' | 'cancelada' | 'no_asistio';
 
+export type AppRole = 'ceo' | 'admin' | 'staff';
+
 export type Profile = {
   id: string;
   full_name: string;
   username: string | null;
-  role: string;
+  role: AppRole | string;
+  job_title?: string | null;
   avatar_url?: string | null;
   bio?: string | null;
+  can_edit_calendar?: boolean;
+  can_edit_bitacora?: boolean;
+  can_edit_tasks?: boolean;
+  is_active?: boolean;
   created_at: string;
 };
 

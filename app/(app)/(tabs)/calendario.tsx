@@ -10,6 +10,7 @@ import { MonthView } from '@/src/components/MonthView';
 import { WeekView } from '@/src/components/WeekView';
 import { ErrorBoundary, FadeSlide, ScreenFocusFade, SplashFAB, TropicalBackground } from '@/src/components/ui';
 import { useAuth } from '@/src/context/AuthContext';
+import { canEditCalendar } from '@/src/lib/permissions';
 import { useCalendarData } from '@/src/hooks/useCalendarData';
 import { shiftCursor } from '@/src/lib/dates';
 import { colors, fonts } from '@/src/theme';
@@ -32,6 +33,7 @@ function CalendarioBody() {
   const insets = useSafeAreaInsets();
   const safeTop = useSafeTop(8);
   const { profile } = useAuth();
+  const allowCalendarEdit = canEditCalendar(profile);
   const [view, setView] = useState<CalendarView>('week');
   const [cursor, setCursor] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState(() => new Date());
@@ -107,10 +109,12 @@ function CalendarioBody() {
         )}
       </View>
 
+      {allowCalendarEdit ? (
       <SplashFAB
         onPress={() => setMenuOpen(true)}
         bottom={Math.max(insets.bottom, 8) + 8}
       />
+      ) : null}
 
       <AddMenu
         visible={menuOpen}
