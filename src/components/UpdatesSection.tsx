@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Linking,
   Platform,
   Pressable,
   StyleSheet,
@@ -14,7 +13,6 @@ import {
   downloadAndInstallApk,
   fetchLatestApkRelease,
   getAppVersion,
-  RELEASES_PAGE,
   type ApkRelease,
 } from '@/src/lib/appUpdates';
 import { colors, radius, shadow } from '@/src/theme';
@@ -32,10 +30,6 @@ type Status =
 export function UpdatesSection() {
   const version = getAppVersion();
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
-
-  const openReleases = useCallback(() => {
-    Linking.openURL(RELEASES_PAGE).catch(() => {});
-  }, []);
 
   const check = useCallback(async () => {
     setStatus({ kind: 'checking' });
@@ -79,7 +73,10 @@ export function UpdatesSection() {
     }
   }, []);
 
-  const isWeb = Platform.OS === 'web';
+  // Actualizaciones is Android/APK only — never show on web.
+  if (Platform.OS !== 'android') {
+    return null;
+  }
 
   return (
     <GlassCard padding={18} style={styles.card}>
@@ -89,77 +86,62 @@ export function UpdatesSection() {
       </View>
       <Text style={styles.version}>Versión instalada: {version}</Text>
 
-      {isWeb ? (
-        <>
-          <Text style={styles.hint}>
-            En la web no se instalan APKs. Revisa los releases en GitHub para descargar la app
-            Android.
-          </Text>
-          <Pressable onPress={openReleases} style={[styles.btn, styles.btnSecondary]}>
-            <Ionicons name="open-outline" size={18} color={colors.tealDeep} />
-            <Text style={styles.btnSecondaryText}>Ver releases en GitHub</Text>
-          </Pressable>
-        </>
-      ) : (
-        <>
-          {status.kind === 'idle' || status.kind === 'upToDate' || status.kind === 'error' ? (
-            <Pressable onPress={check} style={[styles.btn, styles.btnPrimary]}>
-              <Ionicons name="refresh" size={18} color={colors.white} />
-              <Text style={styles.btnPrimaryText}>Buscar actualizaciones</Text>
-            </Pressable>
-          ) : null}
+      {status.kind === 'idle' || status.kind === 'upToDate' || status.kind === 'error' ? (
+        <Pressable onPress={check} style={[styles.btn, styles.btnPrimary]}>
+          <Ionicons name="refresh" size={18} color={colors.white} />
+          <Text style={styles.btnPrimaryText}>Buscar actualizaciones</Text>
+        </Pressable>
+      ) : null}
 
-          {status.kind === 'checking' ? (
-            <View style={styles.row}>
-              <ActivityIndicator color={colors.teal} />
-              <Text style={styles.hint}>Buscando en GitHub…</Text>
-            </View>
-          ) : null}
+      {status.kind === 'checking' ? (
+        <View style={styles.row}>
+          <ActivityIndicator color={colors.teal} />
+          <Text style={styles.hint}>Buscando en GitHub…</Text>
+        </View>
+      ) : null}
 
-          {status.kind === 'upToDate' ? (
-            <Text style={styles.ok}>Ya tienes la última versión.</Text>
-          ) : null}
+      {status.kind === 'upToDate' ? (
+        <Text style={styles.ok}>Ya tienes la última versión.</Text>
+      ) : null}
 
-          {status.kind === 'available' ? (
-            <View style={styles.available}>
-              <Text style={styles.newVer}>Nueva versión: {status.release.version}</Text>
-              {status.release.notes ? (
-                <Text style={styles.notes} numberOfLines={8}>
-                  {status.release.notes}
-                </Text>
-              ) : null}
-              <Pressable
-                onPress={() => install(status.release)}
-                style={[styles.btn, styles.btnPrimary]}
-              >
-                <Ionicons name="download-outline" size={18} color={colors.white} />
-                <Text style={styles.btnPrimaryText}>Descargar e instalar</Text>
-              </Pressable>
-            </View>
-          ) : null}
-
-          {status.kind === 'downloading' ? (
-            <View style={styles.progressWrap}>
-              <Text style={styles.hint}>
-                Descargando… {Math.round(status.progress * 100)}%
-              </Text>
-              <View style={styles.barBg}>
-                <View
-                  style={[styles.barFill, { width: `${Math.round(status.progress * 100)}%` }]}
-                />
-              </View>
-            </View>
-          ) : null}
-
-          {status.kind === 'installing' ? (
-            <Text style={styles.hint}>
-              Abriendo el instalador de Android… Confirma la instalación cuando aparezca.
+      {status.kind === 'available' ? (
+        <View style={styles.available}>
+          <Text style={styles.newVer}>Nueva versión: {status.release.version}</Text>
+          {status.release.notes ? (
+            <Text style={styles.notes} numberOfLines={8}>
+              {status.release.notes}
             </Text>
           ) : null}
+          <Pressable
+            onPress={() => install(status.release)}
+            style={[styles.btn, styles.btnPrimary]}
+          >
+            <Ionicons name="download-outline" size={18} color={colors.white} />
+            <Text style={styles.btnPrimaryText}>Descargar e instalar</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
-          {status.kind === 'error' ? <Text style={styles.err}>{status.message}</Text> : null}
-        </>
-      )}
+      {status.kind === 'downloading' ? (
+        <View style={styles.progressWrap}>
+          <Text style={styles.hint}>
+            Descargando… {Math.round(status.progress * 100)}%
+          </Text>
+          <View style={styles.barBg}>
+            <View
+              style={[styles.barFill, { width: `${Math.round(status.progress * 100)}%` }]}
+            />
+          </View>
+        </View>
+      ) : null}
+
+      {status.kind === 'installing' ? (
+        <Text style={styles.hint}>
+          Abriendo el instalador de Android… Confirma la instalación cuando aparezca.
+        </Text>
+      ) : null}
+
+      {status.kind === 'error' ? <Text style={styles.err}>{status.message}</Text> : null}
     </GlassCard>
   );
 }
@@ -188,12 +170,6 @@ const styles = StyleSheet.create({
   },
   btnPrimary: { backgroundColor: colors.teal },
   btnPrimaryText: { color: colors.white, fontWeight: '800', fontSize: 14 },
-  btnSecondary: {
-    backgroundColor: colors.aquaMist,
-    borderWidth: 1,
-    borderColor: 'rgba(15,168,168,0.35)',
-  },
-  btnSecondaryText: { color: colors.tealDeep, fontWeight: '800', fontSize: 14 },
   progressWrap: { marginTop: 4, gap: 8 },
   barBg: {
     height: 8,

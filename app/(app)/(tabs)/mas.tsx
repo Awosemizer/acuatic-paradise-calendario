@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/src/components/Avatar';
@@ -48,6 +48,8 @@ export default function MasScreen() {
               clientes y eventos internos en un solo lugar, con sincronización en tiempo real.
             </Text>
           </GlassCard>
+
+          {Platform.OS === 'android' ? <UpdatesSection /> : null}
 
           <Pressable
             onPress={() => router.push('/(app)/perfil')}

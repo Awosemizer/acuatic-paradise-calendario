@@ -46,16 +46,13 @@ export function CalendarHeader({
   return (
     <View style={styles.wrap}>
       <View style={styles.pageHead}>
-        <View style={styles.logoRow}>
-          <WoodLogo size="sm" />
-          <View style={{ flex: 1 }} />
-          <Pressable onPress={onProfile} hitSlop={8}>
-            <Avatar name={staffName} uri={avatarUrl} size={36} />
-          </Pressable>
-        </View>
+        <WoodLogo size="sm" />
         <FancyTitle size={28} tilt={-5} style={styles.pageTitle}>
           Calendario
         </FancyTitle>
+        <Pressable onPress={onProfile} hitSlop={8} style={styles.avatarBtn}>
+          <Avatar name={staffName} uri={avatarUrl} size={36} />
+        </Pressable>
       </View>
 
       <View style={styles.tools}>
@@ -88,16 +85,18 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   pageHead: {
-    gap: 4,
-  },
-  logoRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    paddingHorizontal: 2,
+    position: 'relative',
   },
   pageTitle: {
-    marginTop: 4,
-    marginLeft: 2,
+    marginTop: 8,
+  },
+  avatarBtn: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 2,
   },
   tools: {
     gap: 10,
