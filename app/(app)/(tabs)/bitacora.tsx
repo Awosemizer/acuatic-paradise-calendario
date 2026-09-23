@@ -18,6 +18,7 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/src/context/AuthContext';
 import { canEditBitacora } from '@/src/lib/permissions';
+import { ConfirmDialog } from '@/src/components/ConfirmDialog';
 import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import {
   FancyTitle,
@@ -54,7 +55,7 @@ const FORM_AREAS: { value: BitacoraArea; label: string }[] = [
 function formatDate(value: string | Date | null | undefined) {
   if (!value) return 'Sin registro';
   const d = typeof value === 'string' ? parseISO(value) : value;
-  return format(d, "d MMM yyyy", { locale: es });
+  return format(d, 'd MMM yyyy', { locale: es });
 }
 
 function formatDateTime(value: string) {
@@ -66,13 +67,24 @@ export default function BitacoraScreen() {
   const safeTop = useSafeTop(8);
   const { user, profile } = useAuth();
   const allowEdit = canEditBitacora(profile);
-  const { items, loading, error, createItem, updateItem, registerDone, fetchLogs } = useBitacora();
+  const {
+    items,
+    loading,
+    error,
+    createItem,
+    updateItem,
+    deleteItems,
+    registerDone,
+    registerDoneMany,
+    fetchLogs,
+  } = useBitacora();
   const [filter, setFilter] = useState<BitacoraFilter>('todas');
   const [selected, setSelected] = useState<BitacoraItem | null>(null);
   const [logs, setLogs] = useState<BitacoraLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [registerNotes, setRegisterNotes] = useState('');
+  const [registerBulk, setRegisterBulk] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BitacoraItem | null>(null);
@@ -83,10 +95,16 @@ export default function BitacoraScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmDeleteBulk, setConfirmDeleteBulk] = useState(false);
+
   const visible = useMemo(() => {
     if (filter === 'todas') return items;
     return items.filter((i) => i.area === filter);
   }, [items, filter]);
+
+  const selectedCount = selectedIds.size;
 
   const openDetail = useCallback(
     async (item: BitacoraItem) => {
@@ -111,6 +129,47 @@ export default function BitacoraScreen() {
     const fresh = items.find((i) => i.id === selected.id);
     if (fresh && fresh !== selected) setSelected(fresh);
   }, [items, selected]);
+
+  function exitSelectMode() {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }
+
+  function toggleSelectMode() {
+    if (selectMode) {
+      exitSelectMode();
+    } else {
+      setSelectMode(true);
+      setSelected(null);
+    }
+  }
+
+  function toggleId(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function onCardPress(item: BitacoraItem) {
+    if (selectMode) {
+      toggleId(item.id);
+      return;
+    }
+    void openDetail(item);
+  }
+
+  function onCardLongPress(item: BitacoraItem) {
+    if (!selectMode) {
+      setSelectMode(true);
+      setSelected(null);
+      setSelectedIds(new Set([item.id]));
+      return;
+    }
+    toggleId(item.id);
+  }
 
   function openCreate() {
     setEditing(null);
@@ -153,7 +212,13 @@ export default function BitacoraScreen() {
           interval_days: Math.floor(interval),
           description: formDescription,
         });
-        const refreshed = { ...editing, title, area: formArea, interval_days: Math.floor(interval), description: formDescription || null };
+        const refreshed = {
+          ...editing,
+          title,
+          area: formArea,
+          interval_days: Math.floor(interval),
+          description: formDescription || null,
+        };
         setSelected(refreshed);
       } else {
         await createItem(
@@ -175,20 +240,51 @@ export default function BitacoraScreen() {
   }
 
   async function submitRegister() {
-    if (!selected || saving) return;
+    if (saving) return;
     setSaving(true);
     setActionError(null);
     try {
-      await registerDone(selected.id, user?.id, registerNotes);
-      const rows = await fetchLogs(selected.id);
-      setLogs(rows);
-      setRegisterOpen(false);
-      setRegisterNotes('');
+      if (registerBulk) {
+        const ids = Array.from(selectedIds);
+        if (!ids.length) return;
+        await registerDoneMany(ids, user?.id, registerNotes);
+        setRegisterOpen(false);
+        setRegisterNotes('');
+        setRegisterBulk(false);
+        exitSelectMode();
+      } else {
+        if (!selected) return;
+        await registerDone(selected.id, user?.id, registerNotes);
+        const rows = await fetchLogs(selected.id);
+        setLogs(rows);
+        setRegisterOpen(false);
+        setRegisterNotes('');
+      }
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'No se pudo registrar');
     } finally {
       setSaving(false);
     }
+  }
+
+  async function confirmBulkDelete() {
+    setSaving(true);
+    setActionError(null);
+    try {
+      await deleteItems(Array.from(selectedIds));
+      setConfirmDeleteBulk(false);
+      exitSelectMode();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'No se pudo eliminar');
+      setConfirmDeleteBulk(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function closeDetail() {
+    setSelected(null);
+    setActionError(null);
   }
 
   return (
@@ -204,7 +300,9 @@ export default function BitacoraScreen() {
           keyboardOpeningTime={0}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+          contentContainerStyle={{
+            paddingBottom: 120 + insets.bottom + (selectedCount > 0 ? 72 : 0),
+          }}
           ListHeaderComponent={
             <View>
               <View style={[styles.head, { paddingTop: safeTop }]}>
@@ -221,16 +319,42 @@ export default function BitacoraScreen() {
 
               <View style={styles.toolbar}>
                 {allowEdit ? (
-                <Pressable onPress={openCreate} style={styles.addBtn}>
-                  <Ionicons name="add" size={22} color={colors.white} />
-                  <Text style={styles.addBtnText}>Nuevo ítem</Text>
-                </Pressable>
+                  <Pressable onPress={openCreate} style={styles.addBtn}>
+                    <Ionicons name="add" size={22} color={colors.white} />
+                    <Text style={styles.addBtnText}>Nuevo ítem</Text>
+                  </Pressable>
                 ) : null}
+                <Pressable
+                  onPress={toggleSelectMode}
+                  style={[styles.selectBtn, selectMode && styles.selectBtnOn]}
+                >
+                  <Ionicons
+                    name={selectMode ? 'checkbox' : 'checkbox-outline'}
+                    size={18}
+                    color={selectMode ? colors.white : colors.tealDeep}
+                  />
+                  <Text style={[styles.selectBtnText, selectMode && styles.selectBtnTextOn]}>
+                    {selectMode ? 'Listo' : 'Seleccionar'}
+                  </Text>
+                </Pressable>
               </View>
+
+              {selectMode ? (
+                <Text style={styles.selectHint}>
+                  Mantén pulsada una tarjeta o tócala para marcar varias. Así puedes registrar o
+                  administrar varias a la vez.
+                </Text>
+              ) : null}
 
               {error ? (
                 <GlassCard style={{ marginHorizontal: 16, marginBottom: 8 }} padding={12}>
                   <Text style={styles.error}>{error}</Text>
+                </GlassCard>
+              ) : null}
+
+              {actionError && !selected ? (
+                <GlassCard style={{ marginHorizontal: 16, marginBottom: 8 }} padding={12}>
+                  <Text style={styles.error}>{actionError}</Text>
                 </GlassCard>
               ) : null}
 
@@ -252,13 +376,30 @@ export default function BitacoraScreen() {
             const status = bitacoraStatus(item);
             const meta = statusMeta(status);
             const next = nextDueAt(item);
+            const checked = selectedIds.has(item.id);
             return (
               <Pressable
-                onPress={() => openDetail(item)}
+                onPress={() => onCardPress(item)}
+                onLongPress={() => onCardLongPress(item)}
+                delayLongPress={350}
                 style={{ paddingHorizontal: 16, marginBottom: 10 }}
               >
-                <View style={[styles.card, shadow.card]}>
+                <View
+                  style={[
+                    styles.card,
+                    shadow.card,
+                    checked && styles.cardSelected,
+                    selectMode && styles.cardSelectMode,
+                  ]}
+                >
                   <View style={styles.cardTop}>
+                    {selectMode ? (
+                      <View style={[styles.checkbox, checked && styles.checkboxOn]}>
+                        {checked ? (
+                          <Ionicons name="checkmark" size={14} color={colors.white} />
+                        ) : null}
+                      </View>
+                    ) : null}
                     <Text style={styles.cardTitle} numberOfLines={2}>
                       {item.title}
                     </Text>
@@ -282,94 +423,141 @@ export default function BitacoraScreen() {
           }}
         />
 
-        {/* Detail modal */}
-        <Modal
-          visible={!!selected}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setSelected(null)}
-        >
-          <View style={styles.modalBackdrop}>
-            <View style={[styles.modalSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-              {selected ? (
-                <KeyboardScreen bottomPadding={24} extraScrollHeight={120}>
-                  <View style={styles.modalHead}>
-                    <Text style={styles.modalTitle}>{selected.title}</Text>
-                    <Pressable onPress={() => setSelected(null)} hitSlop={10}>
-                      <Ionicons name="close" size={24} color={colors.muted} />
-                    </Pressable>
-                  </View>
-                  <View style={styles.badgeRow}>
-                    <View style={styles.areaBadge}>
-                      <Text style={styles.areaBadgeText}>{areaLabel(selected.area)}</Text>
-                    </View>
-                    {(() => {
-                      const meta = statusMeta(bitacoraStatus(selected));
-                      return (
-                        <View style={[styles.chip, { backgroundColor: meta.bg }]}>
-                          <Text style={[styles.chipText, { color: meta.fg }]}>{meta.label}</Text>
-                        </View>
-                      );
-                    })()}
-                  </View>
-                  {selected.description ? (
-                    <Text style={styles.desc}>{selected.description}</Text>
-                  ) : null}
-                  <Text style={styles.metaLine}>
-                    Intervalo · cada {selected.interval_days} día
-                    {selected.interval_days === 1 ? '' : 's'}
-                  </Text>
-                  <Text style={styles.metaLine}>
-                    Última vez · {formatDate(selected.last_done_at)}
-                  </Text>
-                  <Text style={styles.metaLine}>
-                    Próxima aprox ·{' '}
-                    {nextDueAt(selected)
-                      ? formatDate(nextDueAt(selected)!)
-                      : 'Pendiente de primer registro'}
-                  </Text>
-
-                  {actionError ? <Text style={styles.error}>{actionError}</Text> : null}
-
-                  {allowEdit ? (
-                  <Pressable
-                    style={styles.primaryBtn}
-                    onPress={() => {
-                      setRegisterNotes('');
-                      setRegisterOpen(true);
-                    }}
-                  >
-                    <Ionicons name="checkmark-circle" size={20} color={colors.white} />
-                    <Text style={styles.primaryBtnText}>Registrar mantenimiento</Text>
-                  </Pressable>
-                  ) : null}
-                  {allowEdit ? (
-                  <Pressable style={styles.secondaryBtn} onPress={() => openEdit(selected)}>
-                    <Ionicons name="create-outline" size={18} color={colors.tealDeep} />
-                    <Text style={styles.secondaryBtnText}>Editar ítem</Text>
-                  </Pressable>
-                  ) : null}
-
-                  <Text style={styles.sectionLabel}>Historial</Text>
-                  {logsLoading ? (
-                    <ActivityIndicator color={colors.teal} style={{ marginVertical: 16 }} />
-                  ) : logs.length === 0 ? (
-                    <Text style={styles.emptySoft}>Aún no hay registros.</Text>
-                  ) : (
-                    logs.map((log) => (
-                      <View key={log.id} style={styles.logRow}>
-                        <Ionicons name="water" size={16} color={colors.teal} />
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.logDate}>{formatDateTime(log.done_at)}</Text>
-                          {log.notes ? <Text style={styles.logNotes}>{log.notes}</Text> : null}
-                        </View>
-                      </View>
-                    ))
-                  )}
-                </KeyboardScreen>
+        {selectedCount > 0 ? (
+          <View style={[styles.bulkBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+            <Text style={styles.bulkCount}>
+              {selectedCount === 1 ? '1 seleccionado' : `${selectedCount} seleccionados`}
+            </Text>
+            <View style={styles.bulkActions}>
+              {allowEdit ? (
+                <Pressable
+                  style={styles.bulkPrimary}
+                  onPress={() => {
+                    setRegisterBulk(true);
+                    setRegisterNotes('');
+                    setRegisterOpen(true);
+                  }}
+                >
+                  <Ionicons name="checkmark-circle" size={16} color={colors.white} />
+                  <Text style={styles.bulkPrimaryText}>Registrar</Text>
+                </Pressable>
               ) : null}
+              {allowEdit ? (
+                <Pressable style={styles.bulkDanger} onPress={() => setConfirmDeleteBulk(true)}>
+                  <Ionicons name="trash-outline" size={16} color={colors.white} />
+                  <Text style={styles.bulkPrimaryText}>Eliminar</Text>
+                </Pressable>
+              ) : null}
+              <Pressable style={styles.bulkCancel} onPress={exitSelectMode}>
+                <Text style={styles.bulkCancelText}>Cancelar</Text>
+              </Pressable>
             </View>
           </View>
+        ) : null}
+
+        {/* Detail modal — sheet sizes to content (no flex:1 collapse) */}
+        <Modal
+          visible={!!selected}
+          transparent
+          animationType="fade"
+          presentationStyle="overFullScreen"
+          statusBarTranslucent
+          onRequestClose={closeDetail}
+        >
+          <KeyboardAvoidingView
+            style={styles.modalRoot}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <Pressable style={styles.backdropPress} onPress={closeDetail} accessibilityRole="button" />
+            <View style={styles.sheet} pointerEvents="box-none">
+              <View style={[styles.sheetInner, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+                {selected ? (
+                  <KeyboardScreen
+                    fill={false}
+                    bottomPadding={24}
+                    extraScrollHeight={120}
+                    style={styles.sheetScroll}
+                    contentContainerStyle={styles.sheetContent}
+                  >
+                    <View style={styles.modalHead}>
+                      <Text style={styles.modalTitle}>{selected.title}</Text>
+                      <Pressable onPress={closeDetail} hitSlop={10}>
+                        <Ionicons name="close" size={24} color={colors.muted} />
+                      </Pressable>
+                    </View>
+                    <View style={styles.badgeRow}>
+                      <View style={styles.areaBadge}>
+                        <Text style={styles.areaBadgeText}>{areaLabel(selected.area)}</Text>
+                      </View>
+                      {(() => {
+                        const meta = statusMeta(bitacoraStatus(selected));
+                        return (
+                          <View style={[styles.chip, { backgroundColor: meta.bg }]}>
+                            <Text style={[styles.chipText, { color: meta.fg }]}>{meta.label}</Text>
+                          </View>
+                        );
+                      })()}
+                    </View>
+                    {selected.description ? (
+                      <Text style={styles.desc}>{selected.description}</Text>
+                    ) : null}
+                    <Text style={styles.metaLine}>
+                      Intervalo · cada {selected.interval_days} día
+                      {selected.interval_days === 1 ? '' : 's'}
+                    </Text>
+                    <Text style={styles.metaLine}>
+                      Última vez · {formatDate(selected.last_done_at)}
+                    </Text>
+                    <Text style={styles.metaLine}>
+                      Próxima aprox ·{' '}
+                      {nextDueAt(selected)
+                        ? formatDate(nextDueAt(selected)!)
+                        : 'Pendiente de primer registro'}
+                    </Text>
+
+                    {actionError ? <Text style={styles.error}>{actionError}</Text> : null}
+
+                    {allowEdit ? (
+                      <Pressable
+                        style={styles.primaryBtn}
+                        onPress={() => {
+                          setRegisterBulk(false);
+                          setRegisterNotes('');
+                          setRegisterOpen(true);
+                        }}
+                      >
+                        <Ionicons name="checkmark-circle" size={20} color={colors.white} />
+                        <Text style={styles.primaryBtnText}>Registrar mantenimiento</Text>
+                      </Pressable>
+                    ) : null}
+                    {allowEdit ? (
+                      <Pressable style={styles.secondaryBtn} onPress={() => openEdit(selected)}>
+                        <Ionicons name="create-outline" size={18} color={colors.tealDeep} />
+                        <Text style={styles.secondaryBtnText}>Editar ítem</Text>
+                      </Pressable>
+                    ) : null}
+
+                    <Text style={styles.sectionLabel}>Historial</Text>
+                    {logsLoading ? (
+                      <ActivityIndicator color={colors.teal} style={{ marginVertical: 16 }} />
+                    ) : logs.length === 0 ? (
+                      <Text style={styles.emptySoft}>Aún no hay registros.</Text>
+                    ) : (
+                      logs.map((log) => (
+                        <View key={log.id} style={styles.logRow}>
+                          <Ionicons name="water" size={16} color={colors.teal} />
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.logDate}>{formatDateTime(log.done_at)}</Text>
+                            {log.notes ? <Text style={styles.logNotes}>{log.notes}</Text> : null}
+                          </View>
+                        </View>
+                      ))
+                    )}
+                  </KeyboardScreen>
+                ) : null}
+              </View>
+            </View>
+          </KeyboardAvoidingView>
         </Modal>
 
         {/* Register done modal */}
@@ -377,49 +565,70 @@ export default function BitacoraScreen() {
           visible={registerOpen}
           transparent
           animationType="fade"
-          onRequestClose={() => setRegisterOpen(false)}
+          presentationStyle="overFullScreen"
+          statusBarTranslucent
+          onRequestClose={() => {
+            setRegisterOpen(false);
+            setRegisterBulk(false);
+          }}
         >
-          <Pressable style={styles.centerBackdrop} onPress={() => setRegisterOpen(false)}>
-            <KeyboardAvoidingView
-            behavior="padding"
-            style={{ width: '100%', maxWidth: 420 }}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
+          <KeyboardAvoidingView
+            style={styles.modalRoot}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <Pressable style={[styles.formSheet, { maxHeight: '88%' }]} onPress={() => {}}>
-              <KeyboardAwareScrollView
-                enableOnAndroid
-                enableAutomaticScroll
-                extraScrollHeight={140}
-                keyboardOpeningTime={0}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 12 }}
-              >
-              <Text style={styles.formTitle}>Registrar mantenimiento</Text>
-              <Text style={styles.formHint}>
-                Se marcará como hecho ahora y quedará en el historial.
-              </Text>
-              <Text style={styles.label}>Notas (opcional)</Text>
-              <TextInput
-                value={registerNotes}
-                onChangeText={setRegisterNotes}
-                placeholder="Ej. cloro 2 ppm, pH 7.4…"
-                placeholderTextColor={colors.muted}
-                multiline
-                style={[styles.input, styles.multiline]}
-              />
-              <View style={styles.formActions}>
-                <Pressable style={styles.cancelBtn} onPress={() => setRegisterOpen(false)}>
-                  <Text style={styles.cancelText}>Cancelar</Text>
-                </Pressable>
-                <Pressable style={styles.okBtn} onPress={submitRegister} disabled={saving}>
-                  <Text style={styles.okText}>{saving ? 'Guardando…' : 'Registrar'}</Text>
-                </Pressable>
+            <Pressable
+              style={styles.backdropPress}
+              onPress={() => {
+                setRegisterOpen(false);
+                setRegisterBulk(false);
+              }}
+            />
+            <View style={styles.sheet} pointerEvents="box-none">
+              <View style={styles.sheetInner}>
+                <KeyboardScreen
+                  fill={false}
+                  bottomPadding={28}
+                  extraScrollHeight={140}
+                  style={styles.sheetScroll}
+                  contentContainerStyle={styles.sheetContent}
+                >
+                  <Text style={styles.formTitle}>
+                    {registerBulk
+                      ? `Registrar mantenimiento (${selectedCount})`
+                      : 'Registrar mantenimiento'}
+                  </Text>
+                  <Text style={styles.formHint}>
+                    {registerBulk
+                      ? 'Se marcarán todos los ítems elegidos como hechos ahora. Las notas (opcionales) se aplican a todos.'
+                      : 'Se marcará como hecho ahora y quedará en el historial.'}
+                  </Text>
+                  <Text style={styles.label}>Notas (opcional)</Text>
+                  <TextInput
+                    value={registerNotes}
+                    onChangeText={setRegisterNotes}
+                    placeholder="Ej. cloro 2 ppm, pH 7.4…"
+                    placeholderTextColor={colors.muted}
+                    multiline
+                    style={[styles.input, styles.multiline]}
+                  />
+                  <View style={styles.formActions}>
+                    <Pressable
+                      style={styles.cancelBtn}
+                      onPress={() => {
+                        setRegisterOpen(false);
+                        setRegisterBulk(false);
+                      }}
+                    >
+                      <Text style={styles.cancelText}>Cancelar</Text>
+                    </Pressable>
+                    <Pressable style={styles.okBtn} onPress={submitRegister} disabled={saving}>
+                      <Text style={styles.okText}>{saving ? 'Guardando…' : 'Registrar'}</Text>
+                    </Pressable>
+                  </View>
+                </KeyboardScreen>
               </View>
-            </KeyboardAwareScrollView>
-            </Pressable>
+            </View>
           </KeyboardAvoidingView>
-          </Pressable>
         </Modal>
 
         {/* Create / edit modal */}
@@ -427,82 +636,98 @@ export default function BitacoraScreen() {
           visible={formOpen}
           transparent
           animationType="fade"
+          presentationStyle="overFullScreen"
+          statusBarTranslucent
           onRequestClose={() => setFormOpen(false)}
         >
-          <Pressable style={styles.centerBackdrop} onPress={() => setFormOpen(false)}>
-            <KeyboardAvoidingView
-            behavior="padding"
-            style={{ width: '100%', maxWidth: 420 }}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
+          <KeyboardAvoidingView
+            style={styles.modalRoot}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <Pressable style={[styles.formSheet, { maxHeight: '88%' }]} onPress={() => {}}>
-              <KeyboardAwareScrollView
-                enableOnAndroid
-                enableAutomaticScroll
-                extraScrollHeight={140}
-                keyboardOpeningTime={0}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 12 }}
-              >
-              <Text style={styles.formTitle}>{editing ? 'Editar ítem' : 'Nuevo ítem'}</Text>
-              <Text style={styles.label}>Título</Text>
-              <TextInput
-                value={formTitle}
-                onChangeText={setFormTitle}
-                placeholder="Ej. Retrolavado del filtro"
-                placeholderTextColor={colors.muted}
-                style={styles.input}
-              />
-              <Text style={styles.label}>Área</Text>
-              <View style={styles.chips}>
-                {FORM_AREAS.map((opt) => {
-                  const active = formArea === opt.value;
-                  return (
-                    <Pressable
-                      key={opt.value}
-                      onPress={() => setFormArea(opt.value)}
-                      style={[styles.areaChip, active && styles.areaChipActive]}
-                    >
-                      <Text style={[styles.areaChipText, active && styles.areaChipTextActive]}>
-                        {opt.label}
-                      </Text>
+            <Pressable style={styles.backdropPress} onPress={() => setFormOpen(false)} />
+            <View style={styles.sheet} pointerEvents="box-none">
+              <View style={styles.sheetInner}>
+                <KeyboardScreen
+                  fill={false}
+                  bottomPadding={28}
+                  extraScrollHeight={140}
+                  style={styles.sheetScroll}
+                  contentContainerStyle={styles.sheetContent}
+                >
+                  <Text style={styles.formTitle}>{editing ? 'Editar ítem' : 'Nuevo ítem'}</Text>
+                  <Text style={styles.label}>Título</Text>
+                  <TextInput
+                    value={formTitle}
+                    onChangeText={setFormTitle}
+                    placeholder="Ej. Retrolavado del filtro"
+                    placeholderTextColor={colors.muted}
+                    style={styles.input}
+                  />
+                  <Text style={styles.label}>Área</Text>
+                  <View style={styles.chips}>
+                    {FORM_AREAS.map((opt) => {
+                      const active = formArea === opt.value;
+                      return (
+                        <Pressable
+                          key={opt.value}
+                          onPress={() => setFormArea(opt.value)}
+                          style={[styles.areaChip, active && styles.areaChipActive]}
+                        >
+                          <Text style={[styles.areaChipText, active && styles.areaChipTextActive]}>
+                            {opt.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                  <Text style={styles.label}>Intervalo (días)</Text>
+                  <TextInput
+                    value={formInterval}
+                    onChangeText={setFormInterval}
+                    keyboardType="number-pad"
+                    placeholder="7"
+                    placeholderTextColor={colors.muted}
+                    style={styles.input}
+                  />
+                  <Text style={styles.label}>Descripción (opcional)</Text>
+                  <TextInput
+                    value={formDescription}
+                    onChangeText={setFormDescription}
+                    placeholder="Detalle o instrucciones…"
+                    placeholderTextColor={colors.muted}
+                    multiline
+                    style={[styles.input, styles.multiline]}
+                  />
+                  {formError ? <Text style={styles.error}>{formError}</Text> : null}
+                  <View style={styles.formActions}>
+                    <Pressable style={styles.cancelBtn} onPress={() => setFormOpen(false)}>
+                      <Text style={styles.cancelText}>Cancelar</Text>
                     </Pressable>
-                  );
-                })}
+                    <Pressable style={styles.okBtn} onPress={saveForm} disabled={saving}>
+                      <Text style={styles.okText}>{saving ? 'Guardando…' : 'Guardar'}</Text>
+                    </Pressable>
+                  </View>
+                </KeyboardScreen>
               </View>
-              <Text style={styles.label}>Intervalo (días)</Text>
-              <TextInput
-                value={formInterval}
-                onChangeText={setFormInterval}
-                keyboardType="number-pad"
-                placeholder="7"
-                placeholderTextColor={colors.muted}
-                style={styles.input}
-              />
-              <Text style={styles.label}>Descripción (opcional)</Text>
-              <TextInput
-                value={formDescription}
-                onChangeText={setFormDescription}
-                placeholder="Detalle o instrucciones…"
-                placeholderTextColor={colors.muted}
-                multiline
-                style={[styles.input, styles.multiline]}
-              />
-              {formError ? <Text style={styles.error}>{formError}</Text> : null}
-              <View style={styles.formActions}>
-                <Pressable style={styles.cancelBtn} onPress={() => setFormOpen(false)}>
-                  <Text style={styles.cancelText}>Cancelar</Text>
-                </Pressable>
-                <Pressable style={styles.okBtn} onPress={saveForm} disabled={saving}>
-                  <Text style={styles.okText}>{saving ? 'Guardando…' : 'Guardar'}</Text>
-                </Pressable>
-              </View>
-            </KeyboardAwareScrollView>
-            </Pressable>
+            </View>
           </KeyboardAvoidingView>
-          </Pressable>
         </Modal>
+
+        <ConfirmDialog
+          visible={confirmDeleteBulk}
+          title="¿Eliminar seleccionados?"
+          message={
+            selectedCount === 1
+              ? 'Se quitará este ítem de la bitácora. El historial se conserva.'
+              : `Se quitarán ${selectedCount} ítems de la bitácora. El historial se conserva.`
+          }
+          confirmLabel="Eliminar"
+          destructive
+          onCancel={() => setConfirmDeleteBulk(false)}
+          onConfirm={() => {
+            void confirmBulkDelete();
+          }}
+        />
       </ScreenFocusFade>
     </TropicalBackground>
   );
@@ -514,7 +739,14 @@ const styles = StyleSheet.create({
   title: { marginTop: 8 },
   sub: { color: 'rgba(255,255,255,0.85)', marginTop: 2, marginBottom: 10, marginLeft: 6 },
   tabs: { paddingHorizontal: 16, marginBottom: 10 },
-  toolbar: { paddingHorizontal: 16, marginBottom: 10 },
+  toolbar: {
+    paddingHorizontal: 16,
+    marginBottom: 10,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    alignItems: 'center',
+  },
   addBtn: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
@@ -526,6 +758,27 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   addBtnText: { color: colors.white, fontFamily: fonts.semiBold, fontWeight: '700', fontSize: 14 },
+  selectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.glassStrong,
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
+  selectBtnOn: { backgroundColor: colors.navy, borderColor: colors.navy },
+  selectBtnText: { color: colors.tealDeep, fontWeight: '800', fontSize: 13 },
+  selectBtnTextOn: { color: colors.white },
+  selectHint: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 12,
+    lineHeight: 17,
+    marginHorizontal: 18,
+    marginBottom: 10,
+  },
   card: {
     backgroundColor: colors.glassStrong,
     borderRadius: radius.lg,
@@ -533,6 +786,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.7)',
   },
+  cardSelectMode: { paddingLeft: 12 },
+  cardSelected: {
+    borderColor: colors.teal,
+    backgroundColor: 'rgba(20,196,200,0.18)',
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.tealDeep,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+    backgroundColor: colors.white,
+  },
+  checkboxOn: { backgroundColor: colors.teal, borderColor: colors.teal },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   cardTitle: {
     flex: 1,
@@ -561,19 +831,28 @@ const styles = StyleSheet.create({
   empty: { color: colors.muted, textAlign: 'center' },
   emptySoft: { color: colors.muted, marginTop: 8, marginBottom: 12 },
   error: { color: colors.danger, fontSize: 13, lineHeight: 18, marginTop: 8 },
-  modalBackdrop: {
-    flex: 1,
+  modalRoot: { flex: 1, justifyContent: 'center' },
+  backdropPress: {
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(11,31,58,0.55)',
-    justifyContent: 'flex-end',
   },
-  modalSheet: {
-    backgroundColor: colors.offWhite,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    maxHeight: '92%',
-    paddingHorizontal: 16,
-    paddingTop: 16,
+  sheet: {
+    maxHeight: '90%',
+    width: '92%',
+    alignSelf: 'center',
+    justifyContent: 'center',
   },
+  sheetInner: {
+    backgroundColor: colors.glassStrong,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    overflow: 'hidden',
+    maxHeight: '100%',
+    ...shadow.card,
+  },
+  sheetScroll: { flexGrow: 0 },
+  sheetContent: { padding: 16, paddingBottom: 20 },
   modalHead: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -608,7 +887,7 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: colors.white, fontWeight: '800', fontSize: 15 },
   secondaryBtn: {
     marginTop: 10,
-    backgroundColor: colors.glassStrong,
+    backgroundColor: colors.white,
     borderRadius: radius.md,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -628,20 +907,6 @@ const styles = StyleSheet.create({
   },
   logDate: { color: colors.ink, fontWeight: '700', fontSize: 13 },
   logNotes: { color: colors.muted, marginTop: 2, fontSize: 13, lineHeight: 18 },
-  centerBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(11,31,58,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  formSheet: {
-    width: '100%',
-    maxWidth: 420,
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: 20,
-  },
   formTitle: { fontSize: 18, fontWeight: '800', color: colors.ink, marginBottom: 6 },
   formHint: { color: colors.muted, fontSize: 13, marginBottom: 12, lineHeight: 18 },
   label: { color: colors.navy, fontWeight: '700', marginTop: 10, marginBottom: 6, fontSize: 13 },
@@ -681,4 +946,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   okText: { color: colors.white, fontWeight: '700' },
+  bulkBar: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    bottom: 8,
+    backgroundColor: colors.navy,
+    borderRadius: radius.lg,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    ...shadow.card,
+  },
+  bulkCount: { color: colors.white, fontWeight: '800', fontSize: 14 },
+  bulkActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  bulkPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.teal,
+    borderRadius: radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  bulkDanger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.danger,
+    borderRadius: radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  bulkPrimaryText: { color: colors.white, fontWeight: '800', fontSize: 13 },
+  bulkCancel: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  bulkCancelText: { color: colors.white, fontWeight: '700', fontSize: 13 },
 });

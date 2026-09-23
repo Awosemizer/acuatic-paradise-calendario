@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { isSameDay, isSameMonth, monthGrid } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
-import { CalendarItemCard } from './CalendarItemCard';
+import { CalendarItemCard, calendarItemKey } from './CalendarItemCard';
 import { EmptyState } from './EmptyState';
 
 type Props = {
@@ -13,11 +13,26 @@ type Props = {
   onSelectDay: (day: Date) => void;
   onPressItem: (item: CalendarItem) => void;
   onOpenFullAgenda?: (day: Date) => void;
+  selectMode?: boolean;
+  selectedKeys?: Set<string>;
+  onToggleItem?: (item: CalendarItem) => void;
+  onLongPressItem?: (item: CalendarItem) => void;
 };
 
 const DOW = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
-export function MonthView({ cursor, selected, items, onSelectDay, onPressItem, onOpenFullAgenda }: Props) {
+export function MonthView({
+  cursor,
+  selected,
+  items,
+  onSelectDay,
+  onPressItem,
+  onOpenFullAgenda,
+  selectMode,
+  selectedKeys,
+  onToggleItem,
+  onLongPressItem,
+}: Props) {
   const days = monthGrid(cursor);
   const selectedItems = items.filter((item) => isSameDay(parseISO(item.data.starts_at), selected));
 
@@ -106,13 +121,22 @@ export function MonthView({ cursor, selected, items, onSelectDay, onPressItem, o
       {selectedItems.length === 0 ? (
         <EmptyState message="Sin citas este día." />
       ) : (
-        selectedItems.map((item) => (
-          <CalendarItemCard
-            key={`${item.kind}-${item.data.id}`}
-            item={item}
-            onPress={() => onPressItem(item)}
-          />
-        ))
+        selectedItems.map((item) => {
+          const key = calendarItemKey(item);
+          return (
+            <CalendarItemCard
+              key={key}
+              item={item}
+              selectMode={selectMode}
+              selected={selectedKeys?.has(key)}
+              onPress={() => {
+                if (selectMode) onToggleItem?.(item);
+                else onPressItem(item);
+              }}
+              onLongPress={() => onLongPressItem?.(item)}
+            />
+          );
+        })
       )}
     </ScrollView>
   );

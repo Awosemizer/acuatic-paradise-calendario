@@ -180,6 +180,32 @@ export function useBitacora() {
     return (data as BitacoraLog[]) ?? [];
   }
 
+  /** Soft-delete: hides from list (active=false). */
+  async function deleteItem(id: string) {
+    const { error: err } = await supabase
+      .from('bitacora_items')
+      .update({ active: false })
+      .eq('id', id);
+    if (err) throw new Error(mapBitacoraError(err.message, err.code));
+    await load();
+  }
+
+  async function deleteItems(ids: string[]) {
+    if (!ids.length) return;
+    const { error: err } = await supabase
+      .from('bitacora_items')
+      .update({ active: false })
+      .in('id', ids);
+    if (err) throw new Error(mapBitacoraError(err.message, err.code));
+    await load();
+  }
+
+  async function registerDoneMany(itemIds: string[], userId?: string | null, notes?: string) {
+    for (const id of itemIds) {
+      await registerDone(id, userId, notes);
+    }
+  }
+
   return {
     items: sorted,
     loading,
@@ -187,7 +213,10 @@ export function useBitacora() {
     reload: load,
     createItem,
     updateItem,
+    deleteItem,
+    deleteItems,
     registerDone,
+    registerDoneMany,
     fetchLogs,
   };
 }

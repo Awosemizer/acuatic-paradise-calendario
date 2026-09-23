@@ -4,15 +4,33 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatTime, isSameDay, weekDays } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
+import { calendarItemKey } from './CalendarItemCard';
 
 type Props = {
   cursor: Date;
   items: CalendarItem[];
   onPressItem: (item: CalendarItem) => void;
   onPressDay: (day: Date) => void;
+  selectMode?: boolean;
+  selectedKeys?: Set<string>;
+  onToggleItem?: (item: CalendarItem) => void;
+  onLongPressItem?: (item: CalendarItem) => void;
 };
 
-export function WeekView({ cursor, items, onPressItem, onPressDay }: Props) {
+export function WeekView({
+  cursor,
+  items,
+  onPressItem,
+  onPressDay,
+  selectMode,
+  selectedKeys,
+  onToggleItem,
+  onLongPressItem,
+}: Props) {
+  function handleItemPress(item: CalendarItem) {
+    if (selectMode) onToggleItem?.(item);
+    else onPressItem(item);
+  }
   const days = weekDays(cursor);
   const { width } = useWindowDimensions();
   const compact = width < 720;
@@ -50,10 +68,13 @@ export function WeekView({ cursor, items, onPressItem, onPressDay }: Props) {
                   return (
                     <Pressable
                       key={`${item.kind}-${item.data.id}`}
-                      onPress={() => onPressItem(item)}
+                      onPress={() => handleItemPress(item)}
+                      onLongPress={() => onLongPressItem?.(item)}
+                      delayLongPress={350}
                       style={[
                         styles.rowItem,
                         { borderLeftColor: isVisit ? colors.visit : colors.event },
+                        selectedKeys?.has(calendarItemKey(item)) && styles.rowSelected,
                       ]}
                     >
                       <View
@@ -108,7 +129,9 @@ export function WeekView({ cursor, items, onPressItem, onPressDay }: Props) {
                   return (
                     <Pressable
                       key={`${item.kind}-${item.data.id}`}
-                      onPress={() => onPressItem(item)}
+                      onPress={() => handleItemPress(item)}
+                      onLongPress={() => onLongPressItem?.(item)}
+                      delayLongPress={350}
                       style={[
                         styles.chip,
                         { backgroundColor: isVisit ? colors.aquaMist : colors.coralMist },
@@ -178,6 +201,7 @@ const styles = StyleSheet.create({
   rowTime: { width: 42, fontWeight: '800', color: colors.navySoft, fontSize: 13 },
   rowTitle: { fontWeight: '700', color: colors.ink },
   rowKind: { fontSize: 12, color: colors.muted },
+  rowSelected: { backgroundColor: 'rgba(20,196,200,0.16)' },
   gridPad: { padding: 12, paddingBottom: 120 },
   grid: { flexDirection: 'row', gap: 8, minWidth: 900 },
   col: {

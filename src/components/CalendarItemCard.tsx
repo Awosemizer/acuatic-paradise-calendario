@@ -5,13 +5,27 @@ import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
 import { StatusBadge } from './StatusBadge';
 
+export function calendarItemKey(item: CalendarItem) {
+  return `${item.kind}-${item.data.id}`;
+}
+
 type Props = {
   item: CalendarItem;
   compact?: boolean;
   onPress?: () => void;
+  onLongPress?: () => void;
+  selectMode?: boolean;
+  selected?: boolean;
 };
 
-export function CalendarItemCard({ item, compact, onPress }: Props) {
+export function CalendarItemCard({
+  item,
+  compact,
+  onPress,
+  onLongPress,
+  selectMode,
+  selected,
+}: Props) {
   const isVisit = item.kind === 'visit';
   const title = isVisit ? item.data.client_name : item.data.title;
   const subtitle = isVisit ? item.data.service_type : 'Evento interno';
@@ -20,26 +34,35 @@ export function CalendarItemCard({ item, compact, onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={350}
       style={({ pressed }) => [
         styles.card,
         isVisit ? styles.visit : styles.event,
         compact && styles.compact,
+        selected && styles.selected,
         pressed && { opacity: 0.85 },
       ]}
     >
       <View style={[styles.stripe, { backgroundColor: isVisit ? colors.visit : colors.event }]} />
-      <View
-        style={[
-          styles.iconCircle,
-          { backgroundColor: isVisit ? colors.aquaMist : colors.coralMist },
-        ]}
-      >
-        <Ionicons
-          name={isVisit ? 'people' : 'calendar'}
-          size={16}
-          color={isVisit ? colors.tealDeep : colors.coral}
-        />
-      </View>
+      {selectMode ? (
+        <View style={[styles.checkbox, selected && styles.checkboxOn]}>
+          {selected ? <Ionicons name="checkmark" size={14} color={colors.white} /> : null}
+        </View>
+      ) : (
+        <View
+          style={[
+            styles.iconCircle,
+            { backgroundColor: isVisit ? colors.aquaMist : colors.coralMist },
+          ]}
+        >
+          <Ionicons
+            name={isVisit ? 'people' : 'calendar'}
+            size={16}
+            color={isVisit ? colors.tealDeep : colors.coral}
+          />
+        </View>
+      )}
       <View style={styles.body}>
         <Text style={[styles.time, !isVisit && { color: colors.coral }]} numberOfLines={1}>
           {range}
@@ -72,7 +95,23 @@ const styles = StyleSheet.create({
   visit: { backgroundColor: colors.white },
   event: { backgroundColor: '#FFF8F5' },
   compact: { marginBottom: 4 },
+  selected: {
+    borderColor: colors.teal,
+    backgroundColor: 'rgba(20,196,200,0.14)',
+  },
   stripe: { width: 5, alignSelf: 'stretch' },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.tealDeep,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+    backgroundColor: colors.white,
+  },
+  checkboxOn: { backgroundColor: colors.teal, borderColor: colors.teal },
   iconCircle: {
     width: 34,
     height: 34,

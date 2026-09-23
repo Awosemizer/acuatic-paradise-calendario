@@ -1,6 +1,6 @@
 {
   "name": "acuatic-paradise-calendario",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "main": "expo-router/entry",
   "private": true,
   "scripts": {

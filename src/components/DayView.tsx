@@ -4,12 +4,17 @@ import { DAY_END_HOUR, DAY_START_HOUR, HOUR_HEIGHT } from '@/src/lib/constants';
 import { formatRange } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
+import { calendarItemKey } from './CalendarItemCard';
 import { EmptyState } from './EmptyState';
 
 type Props = {
   date: Date;
   items: CalendarItem[];
   onPressItem: (item: CalendarItem) => void;
+  selectMode?: boolean;
+  selectedKeys?: Set<string>;
+  onToggleItem?: (item: CalendarItem) => void;
+  onLongPressItem?: (item: CalendarItem) => void;
 };
 
 function topFor(iso: string) {
@@ -22,7 +27,15 @@ function heightFor(minutes: number) {
   return Math.max((minutes / 60) * HOUR_HEIGHT, 36);
 }
 
-export function DayView({ date, items, onPressItem }: Props) {
+export function DayView({
+  date,
+  items,
+  onPressItem,
+  selectMode,
+  selectedKeys,
+  onToggleItem,
+  onLongPressItem,
+}: Props) {
   const hours = Array.from({ length: DAY_END_HOUR - DAY_START_HOUR }, (_, i) => DAY_START_HOUR + i);
   const dayItems = items.filter((item) => {
     const d = parseISO(item.data.starts_at);
@@ -64,10 +77,17 @@ export function DayView({ date, items, onPressItem }: Props) {
           const isVisit = item.kind === 'visit';
           const title = isVisit ? item.data.client_name : item.data.title;
           const extra = isVisit ? item.data.service_type : 'Evento';
+          const key = calendarItemKey(item);
+          const selected = !!selectedKeys?.has(key);
           return (
             <Pressable
-              key={`${item.kind}-${item.data.id}`}
-              onPress={() => onPressItem(item)}
+              key={key}
+              onPress={() => {
+                if (selectMode) onToggleItem?.(item);
+                else onPressItem(item);
+              }}
+              onLongPress={() => onLongPressItem?.(item)}
+              delayLongPress={350}
               style={[
                 styles.block,
                 {
@@ -76,6 +96,7 @@ export function DayView({ date, items, onPressItem }: Props) {
                   backgroundColor: isVisit ? colors.aquaMist : colors.coralMist,
                   borderLeftColor: isVisit ? colors.visit : colors.event,
                 },
+                selected && styles.blockSelected,
               ]}
             >
               <Text style={styles.blockTime} numberOfLines={1}>
@@ -147,4 +168,8 @@ const styles = StyleSheet.create({
   blockTime: { fontSize: 11, fontWeight: '700', color: colors.navySoft },
   blockTitle: { fontSize: 14, fontWeight: '800', color: colors.ink },
   blockExtra: { fontSize: 12, color: colors.muted },
+  blockSelected: {
+    borderWidth: 1,
+    borderColor: colors.teal,
+  },
 });
