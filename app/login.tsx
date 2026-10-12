@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     minHeight: 50,
   },
   input: { flex: 1, fontSize: 16, color: colors.ink, paddingVertical: 12 },
-  error: { color: colors.danger, marginTop: 12, fontWeight: '600' },
+  error: { fontSize: 15, color: colors.danger, marginTop: 12, fontWeight: '600' },
   btnWrap: { marginTop: 18, borderRadius: radius.pill, overflow: 'hidden' },
   btn: {
     flexDirection: 'row',
@@ -239,6 +239,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
   },
-  warnTitle: { fontWeight: '800', color: '#9A6700', marginBottom: 4 },
+  warnTitle: { fontSize: 15, fontWeight: '800', color: '#9A6700', marginBottom: 4 },
   warnText: { color: '#7A5A00', fontSize: 13, lineHeight: 18 },
 });

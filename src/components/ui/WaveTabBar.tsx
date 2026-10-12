@@ -1,3 +1,4 @@
+import { isHighContrast, isHugeFont } from '@/src/lib/settingsStore';
 import { PressableScale } from './PressableScale';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +40,8 @@ export function WaveTabBar({ state, descriptors, navigation, rail }: Props & { r
   const insets = useSafeAreaInsets();
   if (rail) return <SideRail state={state} descriptors={descriptors} navigation={navigation} />;
   const bottom = Math.max(insets.bottom, 8);
+  const huge = isHugeFont();
+  const hc = isHighContrast();
 
   return (
     <View style={[styles.wrap, { paddingBottom: bottom }]}>
@@ -82,10 +85,14 @@ export function WaveTabBar({ state, descriptors, navigation, rail }: Props & { r
             >
               <Ionicons
                 name={focused ? icon : outline}
-                size={22}
-                color={focused ? colors.aquaLight : 'rgba(255,255,255,0.55)'}
+                size={huge ? 34 : 24}
+                color={focused ? colors.aquaLight : hc ? '#FFFFFF' : 'rgba(255,255,255,0.8)'}
               />
-              <Text style={[styles.label, focused && styles.labelActive]}>{label}</Text>
+              {huge && !focused ? null : (
+                <Text style={[styles.label, focused && styles.labelActive, huge && { fontSize: 14 }]} numberOfLines={1}>
+                  {label}
+                </Text>
+              )}
               {focused ? <View style={styles.underline} /> : <View style={styles.underlineSpacer} />}
             </PressableScale>
           );
@@ -123,7 +130,7 @@ function SideRail({ state, descriptors, navigation }: Props) {
               style={railStyles.item}
             >
               <View style={[railStyles.pill, focused && railStyles.pillOn]}>
-                <Ionicons name={focused ? icon : outline} size={22} color={focused ? colors.white : 'rgba(255,255,255,0.6)'} />
+                <Ionicons name={focused ? icon : outline} size={22} color={focused ? colors.white : 'rgba(255,255,255,0.82)'} />
               </View>
               <Text style={[railStyles.label, focused && railStyles.labelOn]} numberOfLines={1}>
                 {label}
@@ -151,7 +158,7 @@ const railStyles = StyleSheet.create({
   item: { alignItems: 'center', gap: 4, width: '100%', paddingVertical: 4 },
   pill: { width: 56, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   pillOn: { backgroundColor: colors.teal },
-  label: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: fonts.semiBold, fontWeight: '700' },
+  label: { color: 'rgba(255,255,255,0.82)', fontSize: 12, fontFamily: fonts.semiBold, fontWeight: '700' },
   labelOn: { color: colors.aquaLight },
 });
 
@@ -176,10 +183,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
     paddingVertical: 4,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   label: {
-    color: 'rgba(255,255,255,0.55)',
-    fontSize: 10,
+    color: 'rgba(255,255,255,0.82)',
+    fontSize: 11,
     fontFamily: fonts.semiBold,
     fontWeight: '700',
   },

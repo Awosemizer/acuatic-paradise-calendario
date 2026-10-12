@@ -19,5 +19,5 @@ export default function NotFound() {
 const styles = StyleSheet.create({
   wrap: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.offWhite },
   title: { fontSize: 18, fontWeight: '800', color: colors.ink, marginBottom: 12 },
-  link: { color: colors.sky, fontWeight: '700' },
+  link: { fontSize: 15, color: colors.sky, fontWeight: '700' },
 });

@@ -1,3 +1,4 @@
+import { isHugeFont } from '@/src/lib/settingsStore';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,7 +62,7 @@ export function CalendarHeader({
           <PressableScale onPress={onPrev} style={styles.navBtn}>
             <Ionicons name="chevron-back" size={18} color={colors.white} />
           </PressableScale>
-          <Text style={styles.navTitle} numberOfLines={1}>
+          <Text style={styles.navTitle} numberOfLines={isHugeFont() ? 2 : 1} adjustsFontSizeToFit>
             {title}
           </Text>
           <PressableScale onPress={onNext} style={styles.navBtn}>

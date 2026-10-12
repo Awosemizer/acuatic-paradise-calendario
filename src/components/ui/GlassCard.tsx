@@ -1,3 +1,4 @@
+import { isHighContrast } from '@/src/lib/settingsStore';
 import { Platform, StyleSheet, View, type ViewProps, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { colors, fill, radius, shadow } from '@/src/theme';
@@ -23,7 +24,7 @@ export function GlassCard({
     </View>
   );
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === 'web' || isHighContrast()) {
     return (
       <View
         style={[

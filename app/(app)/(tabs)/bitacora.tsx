@@ -1,3 +1,4 @@
+import { isHugeFont } from '@/src/lib/settingsStore';
 import { AnimatedModal } from '@/src/components/ui/AnimatedModal';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { SheetIn } from '@/src/components/ui/SheetIn';
@@ -477,7 +478,7 @@ export default function BitacoraScreen() {
                         ) : null}
                       </View>
                     ) : null}
-                    <Text style={styles.cardTitle} numberOfLines={2}>
+                    <Text style={styles.cardTitle} numberOfLines={isHugeFont() ? undefined : 2}>
                       {item.title}
                     </Text>
                     <View style={[styles.chip, { backgroundColor: meta.bg }]}>
@@ -822,7 +823,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   head: { paddingHorizontal: 16 },
   title: { marginTop: 8 },
-  sub: { color: 'rgba(255,255,255,0.9)', marginTop: 10, marginBottom: 10, marginLeft: 6 },
+  sub: { fontSize: 15, color: 'rgba(255,255,255,0.9)', marginTop: 10, marginBottom: 10, marginLeft: 6 },
   tabs: { paddingHorizontal: 16, marginBottom: 10 },
   toolbar: {
     paddingHorizontal: 16,
@@ -913,8 +914,8 @@ const styles = StyleSheet.create({
   areaBadgeText: { color: colors.tealDeep, fontWeight: '700', fontSize: 12 },
   interval: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   metaLine: { color: colors.muted, fontSize: 13, marginTop: 6 },
-  empty: { color: colors.muted, textAlign: 'center' },
-  emptySoft: { color: colors.muted, marginTop: 8, marginBottom: 12 },
+  empty: { fontSize: 15, color: colors.muted, textAlign: 'center' },
+  emptySoft: { fontSize: 15, color: colors.muted, marginTop: 8, marginBottom: 12 },
   error: { color: colors.danger, fontSize: 13, lineHeight: 18, marginTop: 8 },
   modalRoot: { flex: 1, justifyContent: 'center' },
   backdropPress: {
@@ -1023,7 +1024,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.skyMist,
     alignItems: 'center',
   },
-  cancelText: { color: colors.navy, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: colors.navy, fontWeight: '700' },
   okBtn: {
     flex: 1,
     paddingVertical: 12,
@@ -1031,7 +1032,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.navy,
     alignItems: 'center',
   },
-  okText: { color: colors.white, fontWeight: '700' },
+  okText: { fontSize: 15, color: colors.white, fontWeight: '700' },
   bulkBar: {
     position: 'absolute',
     left: 10,

@@ -1,3 +1,4 @@
+import { getFontScale, isHighContrast, isHugeFont } from '@/src/lib/settingsStore';
 import { useEffect } from 'react';
 import { StyleSheet, type StyleProp, type TextStyle } from 'react-native';
 import Animated, {
@@ -61,11 +62,14 @@ export function FancyTitle({
     opacity: 0.88 + pulse.value * 0.12,
   }));
 
+  const plain = isHighContrast() || isHugeFont();
   return (
     <Animated.Text
       style={[
         styles.title,
-        { color, fontSize: size, lineHeight: size * 1.25, fontFamily: fonts.display },
+        plain
+          ? { color, fontSize: size * 0.85 * getFontScale(), lineHeight: size * 1.1 * getFontScale(), fontFamily: fonts.bold, textShadowRadius: 0 }
+          : { color, fontSize: size, lineHeight: size * 1.25, fontFamily: fonts.display },
         animStyle,
         style,
       ]}

@@ -436,8 +436,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   searchInput: { flex: 1, paddingVertical: 8, fontSize: 15, color: '#0B1F3A' },
-  searchCount: { color: colors.tealDeep, fontWeight: '800' },
-  notice: { color: colors.white, textAlign: 'center', marginBottom: 6, fontWeight: '600' },
+  searchCount: { fontSize: 15, color: colors.tealDeep, fontWeight: '800' },
+  notice: { fontSize: 15, color: colors.white, textAlign: 'center', marginBottom: 6, fontWeight: '600' },
   screen: { flex: 1 },
   toolbar: {
     paddingHorizontal: 14,
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.9)',
   },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  error: {
+  error: { fontSize: 15,
     color: colors.ink,
     fontFamily: fonts.medium,
     textAlign: 'center',

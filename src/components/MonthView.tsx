@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   cellSel: { backgroundColor: colors.tealDeep },
   cellToday: { backgroundColor: colors.aquaMist },
   num: { fontSize: 14, fontWeight: '700', color: colors.ink },
-  numMuted: { color: '#A8B6C3' },
+  numMuted: { color: '#7D8A97' },
   numSel: { color: colors.white },
   dots: { flexDirection: 'row', gap: 3, height: 8, marginTop: 2 },
   dot: { width: 6, height: 6, borderRadius: 3 },

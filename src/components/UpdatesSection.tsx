@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   title: { fontWeight: '800', fontSize: 16, color: colors.navy },
   version: { color: colors.muted, fontSize: 14, marginBottom: 12 },
   hint: { color: colors.muted, fontSize: 13, lineHeight: 18, marginBottom: 10, flexShrink: 1 },
-  ok: { color: colors.success, fontWeight: '700', marginTop: 8 },
+  ok: { fontSize: 15, color: colors.success, fontWeight: '700', marginTop: 8 },
   err: { color: colors.danger, marginTop: 8, fontSize: 13, lineHeight: 18 },
   warnTitle: { fontWeight: '800', color: colors.coral, fontSize: 15 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },

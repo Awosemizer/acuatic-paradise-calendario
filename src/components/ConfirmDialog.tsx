@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.skyMist,
     alignItems: 'center',
   },
-  cancelText: { color: colors.navy, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: colors.navy, fontWeight: '700' },
   ok: {
     flex: 1,
     paddingVertical: 12,
@@ -82,5 +82,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   okDanger: { backgroundColor: colors.danger },
-  okText: { color: colors.white, fontWeight: '700' },
+  okText: { fontSize: 15, color: colors.white, fontWeight: '700' },
 });

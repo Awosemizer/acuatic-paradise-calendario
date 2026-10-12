@@ -22,6 +22,7 @@ const FONT_OPTIONS: { id: FontSizeId; label: string }[] = [
   { id: 'md', label: 'Normal' },
   { id: 'lg', label: 'Grande' },
   { id: 'xl', label: 'Muy grande' },
+  { id: 'xxl', label: 'Enorme' },
 ];
 const VIEW_OPTIONS: { id: StartView; label: string }[] = [
   { id: 'day', label: 'Día' },
@@ -112,10 +113,23 @@ export default function AjustesScreen() {
         <Text style={styles.section}>Apariencia</Text>
         <View style={styles.card}>
           <Text style={styles.rowLabel}>Tamaño de letra</Text>
-          <Chips options={FONT_OPTIONS} value={settings.fontSize} onChange={(v) => void update({ fontSize: v })} />
+          <Chips
+            options={FONT_OPTIONS}
+            value={settings.fontSize}
+            onChange={(v) => void update(v === 'xxl' && settings.fontSize !== 'xxl' ? { fontSize: v, highContrast: true } : { fontSize: v })}
+          />
           <Text style={[styles.preview, { fontSize: 15 * FONT_SCALES[settings.fontSize] }]}>
             Así se verá el texto en la app.
           </Text>
+
+          <View style={{ marginTop: 12 }}>
+            <Row
+              label="Alto contraste"
+              hint="Fondos sólidos, texto más oscuro y grueso. Se activa solo al elegir letra Enorme; puedes apagarlo aquí."
+              value={settings.highContrast}
+              onChange={(v) => void update({ highContrast: v })}
+            />
+          </View>
 
           <Text style={[styles.rowLabel, { marginTop: 16 }]}>Color del tema</Text>
           <View style={styles.swatches}>
@@ -248,24 +262,24 @@ const styles = StyleSheet.create({
   section: { fontSize: 13, fontWeight: '800', color: colors.tealDeep, textTransform: 'uppercase', marginTop: 18, marginBottom: 8, letterSpacing: 0.6 },
   card: { backgroundColor: colors.white, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.line },
   rowLabel: { fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 8 },
-  hint: { fontSize: 12, color: colors.muted, marginTop: 4, lineHeight: 17 },
-  preview: { color: colors.navySoft, marginTop: 10 },
+  hint: { fontSize: 14, color: colors.muted, marginTop: 4, lineHeight: 20 },
+  preview: { fontSize: 15, color: colors.navySoft, marginTop: 10 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: radius.pill, backgroundColor: colors.skyMist },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, minHeight: 44, justifyContent: 'center', borderRadius: radius.pill, backgroundColor: colors.skyMist },
   chipOn: { backgroundColor: colors.teal },
   chipText: { color: colors.navy, fontWeight: '700', fontSize: 14 },
   chipTextOn: { color: colors.white },
   swatches: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 6 },
-  swatchWrap: { alignItems: 'center', width: 58 },
+  swatchWrap: { alignItems: 'center', minWidth: 58 },
   swatch: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   swatchInner: { position: 'absolute', right: -8, bottom: -8, width: 26, height: 26, borderRadius: 13 },
   swatchOn: { borderWidth: 3, borderColor: colors.navy },
-  swatchLabel: { fontSize: 10.5, color: colors.muted, marginTop: 4, fontWeight: '600' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+  swatchLabel: { fontSize: 12, color: colors.muted, marginTop: 4, fontWeight: '600' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, minHeight: 56 },
   secondary: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, paddingVertical: 10 },
-  secondaryText: { color: colors.tealDeep, fontWeight: '700' },
+  secondaryText: { fontSize: 15, color: colors.tealDeep, fontWeight: '700' },
   reset: { marginTop: 22, alignSelf: 'center', padding: 10 },
-  resetText: { color: colors.danger, fontWeight: '700' },
-  msg: { textAlign: 'center', color: colors.success, fontWeight: '700' },
+  resetText: { fontSize: 15, color: colors.danger, fontWeight: '700' },
+  msg: { fontSize: 15, textAlign: 'center', color: colors.success, fontWeight: '700' },
   foot: { textAlign: 'center', color: colors.muted, fontSize: 12, marginTop: 8 },
 });

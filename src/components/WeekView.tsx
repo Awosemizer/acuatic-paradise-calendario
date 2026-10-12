@@ -1,3 +1,4 @@
+import { isHugeFont } from '@/src/lib/settingsStore';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { parseISO } from 'date-fns';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -36,7 +37,8 @@ export function WeekView({
     else onPressItem(item);
   }
   const days = weekDays(cursor);
-  const compact = !useIsTablet();
+  const tabletLayout = useIsTablet();
+  const compact = !tabletLayout || isHugeFont();
 
   if (compact) {
     return (
@@ -92,9 +94,10 @@ export function WeekView({
                           color={isVisit ? colors.tealDeep : colors.eventDeep}
                         />
                       </View>
-                      <Text style={styles.rowTime}>{formatTime(item.data.starts_at)}</Text>
+                      {isHugeFont() ? null : <Text style={styles.rowTime}>{formatTime(item.data.starts_at)}</Text>}
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.rowTitle} numberOfLines={1}>
+                        {isHugeFont() ? <Text style={styles.rowTime}>{formatTime(item.data.starts_at)}</Text> : null}
+                        <Text style={styles.rowTitle} numberOfLines={isHugeFont() ? undefined : 1}>
                           {title}
                         </Text>
                         <Text style={styles.rowKind}>{kind}</Text>
@@ -242,7 +245,7 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: 'center',
   },
-  emptyTitle: { fontWeight: '800', color: colors.navySoft },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: colors.navySoft },
   emptyHint: { color: colors.muted, fontSize: 12, marginTop: 4, textAlign: 'center' },
   rowItem: {
     flexDirection: 'row',
@@ -261,8 +264,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rowTime: { width: 42, fontWeight: '800', color: colors.navySoft, fontSize: 13 },
-  rowTitle: { fontWeight: '700', color: colors.ink },
+  rowTime: { minWidth: 46, flexShrink: 0, fontWeight: '800', color: colors.navySoft, fontSize: 13 },
+  rowTitle: { fontSize: 15, fontWeight: '700', color: colors.ink },
   rowKind: { fontSize: 12, color: colors.muted },
   rowSelected: { backgroundColor: 'rgba(20,196,200,0.16)' },
   gridWrap: { flex: 1, paddingHorizontal: 8 },

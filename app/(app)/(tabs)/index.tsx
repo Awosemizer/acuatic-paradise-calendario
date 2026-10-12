@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   welcome: { marginBottom: 10, marginLeft: 4 },
-  hello: {
+  hello: { fontSize: 15,
     color: 'rgba(255,255,255,0.9)',
     fontWeight: '600',
     marginBottom: 14,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   },
   hero: { marginBottom: 16 },
   heroTitle: { fontSize: 22, fontFamily: fonts.bold, fontWeight: '800', color: colors.navy },
-  heroDate: { color: colors.navySoft, textTransform: 'capitalize', marginTop: 2 },
+  heroDate: { fontSize: 15, color: colors.navySoft, textTransform: 'capitalize', marginTop: 2 },
   stats: { flexDirection: 'row', gap: 12, marginTop: 14 },
   stat: {
     flex: 1,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   actionText: { color: colors.white, fontFamily: fonts.bold, fontWeight: '800', fontSize: 13 },
-  empty: { color: colors.muted, textAlign: 'center' },
+  empty: { fontSize: 15, color: colors.muted, textAlign: 'center' },
   when: {
     color: colors.white,
     fontSize: 11,

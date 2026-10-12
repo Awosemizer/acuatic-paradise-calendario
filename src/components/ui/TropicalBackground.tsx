@@ -1,3 +1,4 @@
+import { isHighContrast } from '@/src/lib/settingsStore';
 import { ImageBackground, StyleSheet, View, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fill } from '@/src/theme';
@@ -12,6 +13,17 @@ type Props = {
 };
 
 export function TropicalBackground({ children, style, overlay = 'dark' }: Props) {
+  if (isHighContrast()) {
+    // Alto contraste: flat dark navy, barely-there decoration behind content.
+    return (
+      <View style={[styles.bg, { backgroundColor: colors.navy }, style]}>
+        <View style={styles.flamLayer} pointerEvents="none">
+          <FlamingoFloat size={120} opacity={0.06} delay={0} style={styles.flamB} />
+        </View>
+        <View style={styles.content}>{children}</View>
+      </View>
+    );
+  }
   return (
     <ImageBackground source={poolBg} style={[styles.bg, style]} imageStyle={styles.image} resizeMode="cover">
       {overlay !== 'none' && (

@@ -1,3 +1,4 @@
+import { isHugeFont } from '@/src/lib/settingsStore';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -362,7 +363,7 @@ export default function TareasScreen() {
                   />
                 </PressableScale>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={3}>
+                  <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={isHugeFont() ? undefined : 3}>
                     {item.title}
                   </Text>
                   {item.due_at ? (
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   head: { paddingHorizontal: 16 },
   title: { marginTop: 8 },
-  sub: { color: 'rgba(255,255,255,0.9)', marginTop: 10, marginBottom: 10, marginLeft: 6 },
+  sub: { fontSize: 15, color: 'rgba(255,255,255,0.9)', marginTop: 10, marginBottom: 10, marginLeft: 6 },
   tabs: { paddingHorizontal: 16, marginBottom: 10 },
   composer: {
     flexDirection: 'row',
@@ -473,6 +474,6 @@ const styles = StyleSheet.create({
   dueLate: { color: colors.danger },
   taskTitle: { color: colors.ink, fontWeight: '600', fontSize: 15 },
   taskDone: { textDecorationLine: 'line-through', color: colors.muted },
-  empty: { color: colors.muted, textAlign: 'center' },
+  empty: { fontSize: 15, color: colors.muted, textAlign: 'center' },
   error: { color: colors.danger, fontSize: 13, lineHeight: 18 },
 });

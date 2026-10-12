@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
   },
-  btnText: {
+  btnText: { fontSize: 15,
     color: colors.white,
     fontFamily: fonts.bold,
     fontWeight: '800',

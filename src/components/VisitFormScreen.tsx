@@ -201,10 +201,10 @@ export function VisitFormScreen({ visitId }: { visitId?: string }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.offWhite },
   pad: { padding: 20, width: '100%', maxWidth: 720, alignSelf: 'center' },
-  back: { color: colors.sky, fontWeight: '700', marginBottom: 8 },
+  back: { fontSize: 15, color: colors.sky, fontWeight: '700', marginBottom: 8 },
   title: { fontSize: 26, fontWeight: '800', color: colors.ink },
-  kicker: { color: colors.aqua, fontWeight: '800', marginBottom: 18, marginTop: 4 },
-  error: { color: colors.danger, marginBottom: 10, fontWeight: '600' },
+  kicker: { fontSize: 15, color: colors.aqua, fontWeight: '800', marginBottom: 18, marginTop: 4 },
+  error: { fontSize: 15, color: colors.danger, marginBottom: 10, fontWeight: '600' },
   save: {
     backgroundColor: colors.aqua,
     borderRadius: radius.sm,
@@ -214,5 +214,5 @@ const styles = StyleSheet.create({
   },
   saveText: { color: colors.navy, fontWeight: '800', fontSize: 16 },
   delete: { marginTop: 16, alignItems: 'center', padding: 12 },
-  deleteText: { color: colors.danger, fontWeight: '700' },
+  deleteText: { fontSize: 15, color: colors.danger, fontWeight: '700' },
 });

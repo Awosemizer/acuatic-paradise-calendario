@@ -155,7 +155,7 @@ export default function PerfilScreen() {
         {/* Rol/cargo solo editable por admins en Más */}
         {(profile?.job_title || profile?.role) ? (
           <View style={{ marginBottom: 12 }}>
-            <Text style={{ color: colors.navy, fontWeight: "700", marginBottom: 6, fontSize: 13 }}>Cargo</Text>
+            <Text style={styles.cargoLabel}>Cargo</Text>
             <Text style={{ color: colors.ink, fontSize: 15 }}>{profile?.job_title || profile?.role}</Text>
           </View>
         ) : null}
@@ -182,6 +182,7 @@ export default function PerfilScreen() {
 }
 
 const styles = StyleSheet.create({
+  cargoLabel: { color: colors.navy, fontWeight: '700', marginBottom: 6, fontSize: 14 },
   safe: { flex: 1, backgroundColor: colors.offWhite, padding: 20 },
   head: { marginBottom: 16 },
   back: { color: colors.sky, fontWeight: '700', fontSize: 16, marginBottom: 8 },
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     borderColor: colors.white,
   },
   hint: { color: colors.muted, marginTop: 10, fontSize: 13 },
-  username: { color: colors.muted, marginTop: 4 },
+  username: { fontSize: 15, color: colors.muted, marginTop: 4 },
   message: { color: colors.tealDeep, marginTop: 8, marginBottom: 4, fontSize: 13 },
   save: {
     marginTop: 18,

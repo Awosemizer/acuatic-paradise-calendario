@@ -1,3 +1,4 @@
+import { isHugeFont } from '@/src/lib/settingsStore';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -68,11 +69,11 @@ export function CalendarItemCard({
         <Text style={[styles.time, !isVisit && { color: colors.eventDeep }]} numberOfLines={1}>
           {range}
         </Text>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={styles.title} numberOfLines={isHugeFont() ? undefined : 1}>
           {title}
         </Text>
         {!compact && (
-          <Text style={styles.subtitle} numberOfLines={1}>
+          <Text style={styles.subtitle} numberOfLines={isHugeFont() ? 3 : 1}>
             {subtitle}
           </Text>
         )}

@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   dayOut: { color: '#A9B6C2' },
   daySelText: { color: colors.white },
   todayBtn: { alignSelf: 'center', marginTop: 6, paddingHorizontal: 16, paddingVertical: 6 },
-  todayText: { color: colors.tealDeep, fontWeight: '800' },
+  todayText: { fontSize: 15, color: colors.tealDeep, fontWeight: '800' },
   subLabel: { fontSize: 12, fontWeight: '700', color: colors.muted, marginTop: 10, marginBottom: 6 },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: {
@@ -337,5 +337,5 @@ const styles = StyleSheet.create({
   okBtn: { marginTop: 14, backgroundColor: colors.teal, borderRadius: radius.pill, paddingVertical: 12, alignItems: 'center' },
   okText: { color: colors.white, fontWeight: '800', fontSize: 15 },
   cancel: { alignSelf: 'center', marginTop: 8, padding: 8 },
-  cancelText: { color: colors.muted, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: colors.muted, fontWeight: '700' },
 });

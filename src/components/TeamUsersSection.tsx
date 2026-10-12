@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   addText: { color: colors.white, fontWeight: '800', fontSize: 14 },
-  error: { color: colors.danger, marginBottom: 8 },
+  error: { fontSize: 15, color: colors.danger, marginBottom: 8 },
   modalRoot: { flex: 1, justifyContent: 'center' },
   backdropPress: {
     ...StyleSheet.absoluteFill,
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.skyMist,
     alignItems: 'center',
   },
-  cancelText: { color: colors.navy, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: colors.navy, fontWeight: '700' },
   ok: {
     flex: 1,
     paddingVertical: 12,
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.navy,
     alignItems: 'center',
   },
-  okText: { color: colors.white, fontWeight: '700' },
+  okText: { fontSize: 15, color: colors.white, fontWeight: '700' },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  toggleLabel: { color: colors.ink, fontWeight: '600', flex: 1, paddingRight: 8 },
+  toggleLabel: { fontSize: 15, color: colors.ink, fontWeight: '600', flex: 1, paddingRight: 8 },
 });

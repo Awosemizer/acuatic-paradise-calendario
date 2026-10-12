@@ -47,7 +47,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const prev = getSettings();
     const visual =
       (patch.fontSize && patch.fontSize !== prev.fontSize) ||
-      (patch.accent && patch.accent !== prev.accent);
+      (patch.accent && patch.accent !== prev.accent) ||
+      (patch.highContrast !== undefined && patch.highContrast !== prev.highContrast);
     await saveSettings(patch);
     if (visual) {
       setStyleKey(getStyleVersion());
