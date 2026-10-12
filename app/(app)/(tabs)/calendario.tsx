@@ -1,3 +1,4 @@
+import { getFontScale } from '@/src/lib/settingsStore';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -269,6 +270,7 @@ function CalendarioBody() {
             </PressableScale>
             <View style={styles.gotoWrap}>
               <DateTimePickerField
+                short={getFontScale() > 1}
                 mode="date"
                 value={format(view === 'month' ? selectedDay : cursor, 'yyyy-MM-dd')}
                 onChange={(v) => {

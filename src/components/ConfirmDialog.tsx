@@ -1,3 +1,4 @@
+import { AnimatedModal } from '@/src/components/ui/AnimatedModal';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { SheetIn } from '@/src/components/ui/SheetIn';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -23,7 +24,7 @@ export function ConfirmDialog({
   onCancel,
 }: Props) {
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onCancel}>
+    <AnimatedModal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onCancel}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} accessibilityLabel="Cerrar" />
         <SheetIn style={styles.sheet}>
@@ -42,7 +43,7 @@ export function ConfirmDialog({
           </View>
         </SheetIn>
       </View>
-    </Modal>
+    </AnimatedModal>
   );
 }
 

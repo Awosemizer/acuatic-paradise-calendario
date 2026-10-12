@@ -1,6 +1,6 @@
 {
   "name": "acuatic-paradise-calendario",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "main": "index.js",
   "private": true,
   "scripts": {

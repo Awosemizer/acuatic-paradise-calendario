@@ -1,3 +1,4 @@
+import { AnimatedModal } from '@/src/components/ui/AnimatedModal';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { SheetIn } from '@/src/components/ui/SheetIn';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -528,7 +529,7 @@ export default function BitacoraScreen() {
         ) : null}
 
         {/* Detail modal — sheet sizes to content (no flex:1 collapse) */}
-        <Modal
+        <AnimatedModal
           visible={!!selected}
           transparent
           animationType="fade"
@@ -623,10 +624,10 @@ export default function BitacoraScreen() {
               </View>
             </SheetIn>
           </KeyboardModalRoot>
-        </Modal>
+        </AnimatedModal>
 
         {/* Register done modal */}
-        <Modal
+        <AnimatedModal
           visible={registerOpen}
           transparent
           animationType="fade"
@@ -700,10 +701,10 @@ export default function BitacoraScreen() {
               </View>
             </SheetIn>
           </KeyboardModalRoot>
-        </Modal>
+        </AnimatedModal>
 
         {/* Create / edit modal */}
-        <Modal
+        <AnimatedModal
           visible={formOpen}
           transparent
           animationType="fade"
@@ -779,7 +780,7 @@ export default function BitacoraScreen() {
               </View>
             </SheetIn>
           </KeyboardModalRoot>
-        </Modal>
+        </AnimatedModal>
 
         <ConfirmDialog
           visible={confirmDeleteBulk}

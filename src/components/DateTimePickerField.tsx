@@ -49,11 +49,14 @@ export function DateTimePickerField({
   onChange,
   placeholder,
   onClear,
+  short,
 }: {
   label?: string;
   mode: Mode;
   /** 'yyyy-MM-dd' for date, 'HH:mm' (24h, stored) for time; '' = empty */
   value: string;
+  /** Compact label ("12 oct") for tight toolbars. */
+  short?: boolean;
   onChange: (v: string) => void;
   placeholder?: string;
   onClear?: () => void;
@@ -81,7 +84,7 @@ export function DateTimePickerField({
     setOpen(true);
   }
 
-  const shown = value ? (mode === 'date' ? displayDateStr(value) : formatTimeString(value)) : placeholder ?? (mode === 'date' ? 'Elegir fecha' : 'Elegir hora');
+  const shown = value ? (mode === 'date' ? (short ? new Date(`${value}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }).replace('.', '') : displayDateStr(value)) : formatTimeString(value)) : placeholder ?? (mode === 'date' ? 'Elegir fecha' : 'Elegir hora');
 
   return (
     <View style={styles.field}>

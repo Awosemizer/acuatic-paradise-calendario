@@ -1,3 +1,4 @@
+import { AnimatedModal } from '@/src/components/ui/AnimatedModal';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { SheetIn } from '@/src/components/ui/SheetIn';
 import { useCallback, useEffect, useState } from 'react';
@@ -287,7 +288,7 @@ function UserFormModal(props: {
   } = props;
 
   return (
-    <Modal
+    <AnimatedModal
       visible={visible}
       transparent
       animationType="fade"
@@ -381,7 +382,7 @@ function UserFormModal(props: {
           </View>
         </SheetIn>
       </KeyboardModalRoot>
-    </Modal>
+    </AnimatedModal>
   );
 }
 

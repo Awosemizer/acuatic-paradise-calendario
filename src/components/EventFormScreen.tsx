@@ -113,7 +113,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
           <Text style={styles.back}>‹ Calendario</Text>
         </PressableScale>
         <Text style={styles.title}>{eventId ? 'Editar evento' : 'Nuevo evento'}</Text>
-        <Text style={styles.kicker}>Interno · coral</Text>
+        <Text style={styles.kicker}>Evento interno</Text>
 
         <Field
           label="Título"

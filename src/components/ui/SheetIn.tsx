@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useModalAnim } from './AnimatedModal';
 import { Animated, Platform, type StyleProp, type ViewStyle } from 'react-native';
 
 type Props = {
@@ -12,9 +13,12 @@ const native = Platform.OS !== 'web';
 
 /** Spring entry animation for modal sheets / dialogs (mounts with the Modal). */
 export function SheetIn({ children, style, variant = 'pop' }: Props) {
-  const v = useRef(new Animated.Value(0)).current;
+  const own = useRef(new Animated.Value(0)).current;
+  const shared = useModalAnim();
+  const v = shared ?? own;
 
   useEffect(() => {
+    if (shared) return;
     Animated.spring(v, {
       toValue: 1,
       useNativeDriver: native,
@@ -22,7 +26,7 @@ export function SheetIn({ children, style, variant = 'pop' }: Props) {
       stiffness: 220,
       mass: 0.9,
     }).start();
-  }, [v]);
+  }, [v, shared]);
 
   const translateY = v.interpolate({ inputRange: [0, 1], outputRange: [variant === 'up' ? 60 : 24, 0] });
   const scale = v.interpolate({ inputRange: [0, 1], outputRange: [variant === 'up' ? 1 : 0.94, 1] });

@@ -54,18 +54,18 @@ export function CalendarItemCard({
         <View
           style={[
             styles.iconCircle,
-            { backgroundColor: isVisit ? colors.aquaMist : colors.coralMist },
+            { backgroundColor: isVisit ? colors.aquaMist : colors.eventMist },
           ]}
         >
           <Ionicons
             name={isVisit ? 'people' : 'calendar'}
             size={16}
-            color={isVisit ? colors.tealDeep : colors.coral}
+            color={isVisit ? colors.tealDeep : colors.eventDeep}
           />
         </View>
       )}
       <View style={styles.body}>
-        <Text style={[styles.time, !isVisit && { color: colors.coral }]} numberOfLines={1}>
+        <Text style={[styles.time, !isVisit && { color: colors.eventDeep }]} numberOfLines={1}>
           {range}
         </Text>
         <Text style={styles.title} numberOfLines={1}>

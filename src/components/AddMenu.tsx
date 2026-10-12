@@ -1,3 +1,4 @@
+import { AnimatedModal } from '@/src/components/ui/AnimatedModal';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow } from '@/src/theme';
@@ -16,7 +17,7 @@ export function AddMenu({ visible, onClose, onVisit, onEvent }: Props) {
   const tablet = useIsTablet();
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+    <AnimatedModal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
       <View style={[styles.backdrop, tablet && styles.backdropCenter]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
         <SheetIn
@@ -30,13 +31,13 @@ export function AddMenu({ visible, onClose, onVisit, onEvent }: Props) {
             <Text style={styles.optHint}>Recorrido, consulta o apartado</Text>
           </PressableScale>
           <PressableScale style={styles.optEvent} onPress={onEvent}>
-            <Text style={[styles.optKicker, { color: colors.coral }]}>EVENTO</Text>
+            <Text style={[styles.optKicker, { color: colors.eventDeep }]}>EVENTO</Text>
             <Text style={styles.optTitle}>Nuevo evento interno</Text>
             <Text style={styles.optHint}>Mantenimiento, cierre u otro</Text>
           </PressableScale>
         </SheetIn>
       </View>
-    </Modal>
+    </AnimatedModal>
   );
 }
 

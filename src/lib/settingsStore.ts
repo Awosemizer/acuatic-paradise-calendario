@@ -65,6 +65,15 @@ export const ACCENTS: Record<AccentId, { label: string; palette: AccentPalette }
   },
 };
 
+const CORAL_EVENT = { event: '#FF6B4A', deep: '#D9482A', mist: '#FFF0EB' };
+export const EVENT_COLORS: Record<AccentId, { event: string; deep: string; mist: string }> = {
+  turquesa: CORAL_EVENT,
+  oceano: CORAL_EVENT,
+  coral: { event: '#7C5CE0', deep: '#5B3FC0', mist: '#EFEAFD' },
+  flamenco: { event: '#F59E0B', deep: '#B45F06', mist: '#FEF3D6' },
+  palmera: CORAL_EVENT,
+};
+
 const KEY = 'ap.settings.v1';
 
 let current: AppSettings = { ...DEFAULT_SETTINGS };
@@ -115,6 +124,11 @@ function applyTheme() {
     (colors as Record<string, string>)[k] = pal[k];
   });
   (colors as Record<string, string>).visit = pal.aqua;
+  // Events always get a hue that contrasts with the accent (visits follow the accent).
+  const ev = EVENT_COLORS[current.accent] ?? EVENT_COLORS.turquesa;
+  (colors as Record<string, string>).event = ev.event;
+  (colors as Record<string, string>).eventDeep = ev.deep;
+  (colors as Record<string, string>).eventMist = ev.mist;
   version += 1;
 }
 

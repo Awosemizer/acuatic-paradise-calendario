@@ -1,11 +1,14 @@
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { parseISO } from 'date-fns';
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatTime, isSameDay, weekDays } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
 import { calendarItemKey } from './CalendarItemCard';
+import { layoutOverlaps } from '@/src/lib/overlap';
+import { DAY_END_HOUR, DAY_START_HOUR } from '@/src/lib/constants';
+import { useIsTablet } from '@/src/hooks/useLayoutMode';
 
 type Props = {
   cursor: Date;
@@ -33,8 +36,7 @@ export function WeekView({
     else onPressItem(item);
   }
   const days = weekDays(cursor);
-  const { width } = useWindowDimensions();
-  const compact = width < 720;
+  const compact = !useIsTablet();
 
   if (compact) {
     return (
@@ -81,13 +83,13 @@ export function WeekView({
                       <View
                         style={[
                           styles.iconCircle,
-                          { backgroundColor: isVisit ? colors.aquaMist : colors.coralMist },
+                          { backgroundColor: isVisit ? colors.aquaMist : colors.eventMist },
                         ]}
                       >
                         <Ionicons
                           name={isVisit ? 'people' : 'construct'}
                           size={16}
-                          color={isVisit ? colors.tealDeep : colors.coral}
+                          color={isVisit ? colors.tealDeep : colors.eventDeep}
                         />
                       </View>
                       <Text style={styles.rowTime}>{formatTime(item.data.starts_at)}</Text>
@@ -109,24 +111,70 @@ export function WeekView({
     );
   }
 
+  // Tablet / wide: 7-column time grid using the full width (Google Calendar style).
+  const placedByDay = days.map((day) =>
+    layoutOverlaps(items.filter((item) => isSameDay(parseISO(item.data.starts_at), day))),
+  );
+  let startHour = DAY_START_HOUR;
+  let endHour = DAY_END_HOUR;
+  placedByDay.flat().forEach(({ start, end }) => {
+    const s0 = new Date(start);
+    const e0 = new Date(end);
+    startHour = Math.min(startHour, s0.getHours());
+    endHour = Math.max(endHour, e0.getDate() !== s0.getDate() ? 24 : e0.getHours() + (e0.getMinutes() ? 1 : 0));
+  });
+  endHour = Math.min(endHour, 24);
+  const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
+  const H = WEEK_HOUR_HEIGHT;
+  const topOf = (t: number) => {
+    const d = new Date(t);
+    return GRID_PAD + ((d.getHours() - startHour) * 60 + d.getMinutes()) / 60 * H;
+  };
+  const now = new Date();
+
   return (
-    <ScrollView horizontal contentContainerStyle={styles.gridPad}>
-      <View style={styles.grid}>
+    <View style={styles.gridWrap}>
+      <View style={styles.gridHead}>
+        <View style={{ width: HOUR_COL }} />
         {days.map((day) => {
-          const dayItems = items.filter((item) => isSameDay(parseISO(item.data.starts_at), day));
-          const today = isSameDay(day, new Date());
+          const today = isSameDay(day, now);
+          const count = placedByDay[days.indexOf(day)].length;
           return (
-            <View key={day.toISOString()} style={[styles.col, today && styles.colToday]}>
-              <PressableScale onPress={() => onPressDay(day)} style={styles.colHead}>
-                <Text style={styles.colDow}>
-                  {day.toLocaleDateString('es-MX', { weekday: 'short' })}
-                </Text>
-                <Text style={[styles.colNum, today && styles.todayNum]}>{day.getDate()}</Text>
-              </PressableScale>
-              <ScrollView>
-                {dayItems.map((item) => {
+            <PressableScale key={day.toISOString()} onPress={() => onPressDay(day)} style={[styles.headCell, today && styles.headToday]}>
+              <Text style={[styles.colDow, today && styles.todayNum]} numberOfLines={1}>
+                {day.toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', '')}
+              </Text>
+              <Text style={[styles.colNum, today && styles.todayNum]}>{day.getDate()}</Text>
+              <Text style={styles.headCount} numberOfLines={1}>{count ? `${count} cita${count > 1 ? 's' : ''}` : ' '}</Text>
+            </PressableScale>
+          );
+        })}
+      </View>
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+        <View style={{ height: hours.length * H + GRID_PAD * 2, flexDirection: 'row' }}>
+          <View style={{ width: HOUR_COL }}>
+            {hours.map((h, i) => (
+              <Text key={h} style={[styles.hourLabel, { top: GRID_PAD + i * H - 7 }]} numberOfLines={1}>
+                {`${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? 'a.m.' : 'p.m.'}`}
+              </Text>
+            ))}
+          </View>
+          {days.map((day, di) => {
+            const today = isSameDay(day, now);
+            return (
+              <View key={day.toISOString()} style={[styles.gridCol, today && styles.gridColToday]}>
+                {hours.map((h, i) => (
+                  <View key={h} style={[styles.gridLine, { top: GRID_PAD + i * H }]} />
+                ))}
+                {today && now.getHours() >= startHour && now.getHours() < endHour ? (
+                  <View style={[styles.nowLine, { top: topOf(now.getTime()) }]} />
+                ) : null}
+                {placedByDay[di].map(({ item, col, cols, start, end }) => {
                   const isVisit = item.kind === 'visit';
                   const title = isVisit ? item.data.client_name : item.data.title;
+                  const top = topOf(start);
+                  const height = Math.max(topOf(end) - top - 2, 22);
+                  const sel = !!selectedKeys?.has(calendarItemKey(item));
                   return (
                     <PressableScale
                       key={`${item.kind}-${item.data.id}`}
@@ -134,25 +182,39 @@ export function WeekView({
                       onLongPress={() => onLongPressItem?.(item)}
                       delayLongPress={350}
                       style={[
-                        styles.chip,
-                        { backgroundColor: isVisit ? colors.aquaMist : colors.coralMist },
+                        styles.gBlock,
+                        {
+                          top,
+                          height,
+                          left: `${(col / cols) * 100}%`,
+                          width: `${100 / cols}%`,
+                          backgroundColor: isVisit ? colors.aquaMist : colors.eventMist,
+                          borderLeftColor: isVisit ? colors.visit : colors.event,
+                        },
+                        sel && styles.gBlockSel,
                       ]}
                     >
-                      <Text style={styles.chipTime}>{formatTime(item.data.starts_at)}</Text>
-                      <Text style={styles.chipTitle} numberOfLines={2}>
+                      {height >= 34 && cols < 3 ? (
+                        <Text style={styles.chipTime} numberOfLines={1}>{formatTime(item.data.starts_at)}</Text>
+                      ) : null}
+                      <Text style={styles.chipTitle} numberOfLines={Math.max(1, Math.floor((height - 18) / 15))}>
                         {title}
                       </Text>
                     </PressableScale>
                   );
                 })}
-              </ScrollView>
-            </View>
-          );
-        })}
-      </View>
-    </ScrollView>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
+
+const HOUR_COL = 52;
+const GRID_PAD = 10;
+const WEEK_HOUR_HEIGHT = 56;
 
 const styles = StyleSheet.create({
   listPad: { padding: 12, paddingBottom: 120 },
@@ -203,7 +265,18 @@ const styles = StyleSheet.create({
   rowTitle: { fontWeight: '700', color: colors.ink },
   rowKind: { fontSize: 12, color: colors.muted },
   rowSelected: { backgroundColor: 'rgba(20,196,200,0.16)' },
-  gridPad: { padding: 12, paddingBottom: 120 },
+  gridWrap: { flex: 1, paddingHorizontal: 8 },
+  gridHead: { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.line },
+  headCell: { flex: 1, alignItems: 'center', paddingVertical: 4, borderRadius: radius.md, marginHorizontal: 2 },
+  headToday: { backgroundColor: colors.aquaMist },
+  headCount: { fontSize: 10, color: colors.muted, fontWeight: '700' },
+  hourLabel: { position: 'absolute', left: 0, width: HOUR_COL - 6, textAlign: 'right', fontSize: 10, fontWeight: '700', color: colors.muted },
+  gridCol: { flex: 1, position: 'relative', borderLeftWidth: 1, borderLeftColor: colors.line, paddingHorizontal: 2 },
+  gridColToday: { backgroundColor: 'rgba(20,196,200,0.06)' },
+  gridLine: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: colors.line },
+  nowLine: { position: 'absolute', left: 0, right: 0, height: 2, backgroundColor: colors.coral, zIndex: 3 },
+  gBlock: { position: 'absolute', borderRadius: 6, borderLeftWidth: 3, paddingHorizontal: 4, paddingVertical: 2, overflow: 'hidden', borderRightWidth: 1, borderRightColor: colors.white, zIndex: 2 },
+  gBlockSel: { borderWidth: 2, borderColor: colors.teal },
   grid: { flexDirection: 'row', gap: 8, minWidth: 900 },
   col: {
     width: 140,

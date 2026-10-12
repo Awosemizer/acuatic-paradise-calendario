@@ -7,6 +7,7 @@ import { formatRange, formatTime } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
 import type { CalendarItem } from '@/src/types';
 import { calendarItemKey } from './CalendarItemCard';
+import { layoutOverlaps } from '@/src/lib/overlap';
 import { EmptyState } from './EmptyState';
 
 type Props = {
@@ -71,6 +72,7 @@ export const DayView = memo(function DayView({
     }
     return { startHour: startH, endHour: Math.min(endH, 24) };
   }, [dayItems]);
+  const placed = useMemo(() => layoutOverlaps(dayItems), [dayItems]);
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
 
   const now = new Date();
@@ -100,14 +102,16 @@ export const DayView = memo(function DayView({
             <View style={styles.nowLine} />
           </View>
         )}
-        {dayItems.map((item) => {
+        <View style={styles.lane} pointerEvents="box-none">
+        {placed.map(({ item, col, cols }) => {
           const isVisit = item.kind === 'visit';
           const title = isVisit ? item.data.client_name : item.data.title;
           const extra = isVisit ? item.data.service_type : 'Evento';
           const key = calendarItemKey(item);
           const selected = !!selectedKeys?.has(key);
           const blockH = heightFor(item.data.duration_minutes);
-          const compact = blockH < 48;
+          const narrow = cols >= 3;
+          const compact = blockH < 48 || narrow;
           return (
             <PressableScale
               key={key}
@@ -121,17 +125,20 @@ export const DayView = memo(function DayView({
                 styles.block,
                 {
                   top: topFor(item.data.starts_at, startHour),
-                  height: blockH,
-                  backgroundColor: isVisit ? colors.aquaMist : colors.coralMist,
+                  height: blockH - 2,
+                  left: `${(col / cols) * 100}%`,
+                  width: `${100 / cols}%`,
+                  backgroundColor: isVisit ? colors.aquaMist : colors.eventMist,
                   borderLeftColor: isVisit ? colors.visit : colors.event,
                 },
                 compact && styles.blockCompact,
+                cols > 1 && styles.blockSplit,
                 selected && styles.blockSelected,
               ]}
             >
               {compact ? (
-                <Text style={styles.blockTitle} numberOfLines={1}>
-                  <Text style={styles.blockTime}>{formatTime(item.data.starts_at)} · </Text>
+                <Text style={[styles.blockTitle, narrow && styles.blockTitleNarrow]} numberOfLines={narrow && blockH >= 48 ? 3 : 1}>
+                  {narrow ? null : <Text style={styles.blockTime}>{formatTime(item.data.starts_at)} · </Text>}
                   {title}
                 </Text>
               ) : (
@@ -152,6 +159,7 @@ export const DayView = memo(function DayView({
             </PressableScale>
           );
         })}
+        </View>
       </View>
     </ScrollView>
   );
@@ -196,18 +204,20 @@ const styles = StyleSheet.create({
     marginLeft: -4,
   },
   nowLine: { flex: 1, height: 2, backgroundColor: colors.coral },
+  lane: { position: 'absolute', top: 0, bottom: 0, left: 66, right: 12 },
+  blockSplit: { borderRightWidth: 2, borderRightColor: 'rgba(255,255,255,0.95)', paddingHorizontal: 6 },
   block: {
     position: 'absolute',
-    left: 66,
-    right: 12,
     borderRadius: radius.sm,
     borderLeftWidth: 4,
     paddingHorizontal: 10,
     paddingVertical: 6,
+    overflow: 'hidden',
     zIndex: 2,
   },
   blockTime: { fontSize: 11, fontWeight: '700', color: colors.navySoft },
   blockTitle: { fontSize: 14, fontWeight: '800', color: colors.ink },
+  blockTitleNarrow: { fontSize: 12 },
   blockExtra: { fontSize: 12, color: colors.muted },
   blockCompact: { paddingVertical: 2, justifyContent: 'center' },
   blockSelected: {

@@ -29,6 +29,8 @@ export const colors = {
   tabBar: '#0A1C33',
   visit: '#14C4C8',
   event: '#FF6B4A',
+  eventDeep: '#D9482A',
+  eventMist: '#FFF0EB',
 };
 
 export const statusColors: Record<string, { bg: string; fg: string; label: string }> = {

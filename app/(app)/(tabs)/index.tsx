@@ -124,7 +124,7 @@ export default function InicioScreen() {
               <Text style={styles.statLabel}>Visitas</Text>
             </View>
             <View style={[styles.stat, styles.statEvent]}>
-              <Text style={[styles.statNum, { color: colors.coral }]}>
+              <Text style={[styles.statNum, { color: colors.eventDeep }]}>
                 {todayItems.filter((i) => i.kind === 'event').length}
               </Text>
               <Text style={styles.statLabel}>Eventos</Text>
@@ -160,7 +160,7 @@ export default function InicioScreen() {
             <Text style={styles.actionText}>Nueva visita</Text>
           </PressableScale>
           <PressableScale
-            style={[styles.action, { backgroundColor: colors.coral }]}
+            style={[styles.action, { backgroundColor: colors.event }]}
             onPress={() => router.push('/(app)/evento/nuevo')}
           >
             <Ionicons name="sparkles" size={20} color={colors.white} />
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   statSoft: { backgroundColor: colors.skyMist },
   statAlert: { color: colors.danger, fontSize: 11, fontWeight: '700', marginTop: 2 },
   statWarn: { color: '#9A6700', fontSize: 11, fontWeight: '700', marginTop: 2 },
-  statEvent: { backgroundColor: colors.coralMist },
+  statEvent: {},
   statNum: { fontSize: 24, fontFamily: fonts.bold, fontWeight: '800', color: colors.tealDeep },
   statLabel: { color: colors.muted, fontWeight: '700', fontSize: 12, marginTop: 2 },
   sectionTitle: { marginBottom: 10, marginTop: 8, marginLeft: 4 },
