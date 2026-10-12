@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/src/context/AuthContext';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { colors, fill, fonts, radius, shadow } from '@/src/theme';
+import { accentAlpha } from '@/src/lib/settingsStore';
 import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import {
   FancyTitle,
@@ -67,7 +68,7 @@ export default function LoginScreen() {
     <TropicalBackground overlay="none">
       <Animated.View style={[fill, { transform: [{ scale: pulse }], opacity: 0.35 }]} pointerEvents="none">
         <LinearGradient
-          colors={['transparent', 'rgba(94,232,236,0.25)', 'transparent']}
+          colors={['transparent', accentAlpha('aquaLight', 0.25), 'transparent']}
           style={fill}
         />
       </Animated.View>

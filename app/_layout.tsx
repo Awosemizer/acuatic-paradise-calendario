@@ -15,7 +15,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import { AuthProvider } from '@/src/context/AuthContext';
-import { SettingsProvider, useSettings } from '@/src/context/SettingsContext';
+import { SettingsProvider, useSettingsMeta } from '@/src/context/SettingsContext';
 import { Fragment } from 'react';
 import { colors } from '@/src/theme';
 
@@ -48,7 +48,7 @@ export default function RootLayout() {
 }
 
 function ThemedRoot() {
-  const { ready, styleKey } = useSettings();
+  const { ready, styleKey } = useSettingsMeta();
   if (!ready) return null;
 
   return (

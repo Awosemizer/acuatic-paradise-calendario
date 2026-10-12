@@ -1,6 +1,9 @@
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow } from '@/src/theme';
+import { SheetIn } from '@/src/components/ui/SheetIn';
+import { useIsTablet } from '@/src/hooks/useLayoutMode';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   visible: boolean;
@@ -10,10 +13,16 @@ type Props = {
 };
 
 export function AddMenu({ visible, onClose, onVisit, onEvent }: Props) {
+  const tablet = useIsTablet();
+  const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <PressableScale style={styles.backdrop} onPress={onClose}>
-        <View style={styles.sheet}>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+      <View style={[styles.backdrop, tablet && styles.backdropCenter]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
+        <SheetIn
+          variant={tablet ? 'pop' : 'up'}
+          style={[styles.sheet, tablet ? styles.sheetDialog : { paddingBottom: 24 + insets.bottom }]}
+        >
           <Text style={styles.title}>Agregar al calendario</Text>
           <PressableScale style={styles.optVisit} onPress={onVisit}>
             <Text style={styles.optKicker}>VISITA</Text>
@@ -25,8 +34,8 @@ export function AddMenu({ visible, onClose, onVisit, onEvent }: Props) {
             <Text style={styles.optTitle}>Nuevo evento interno</Text>
             <Text style={styles.optHint}>Mantenimiento, cierre u otro</Text>
           </PressableScale>
-        </View>
-      </PressableScale>
+        </SheetIn>
+      </View>
     </Modal>
   );
 }
@@ -37,6 +46,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(11,31,58,0.45)',
     justifyContent: 'flex-end',
   },
+  backdropCenter: { justifyContent: 'center', alignItems: 'center', padding: 24 },
+  sheetDialog: { width: '100%', maxWidth: 480, borderRadius: 24 },
   sheet: {
     backgroundColor: colors.offWhite,
     borderTopLeftRadius: 24,

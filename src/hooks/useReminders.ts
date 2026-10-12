@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { syncReminders, remindersSupported } from '@/src/lib/reminders';
-import { useSettings } from '@/src/context/SettingsContext';
+import { useSetting } from '@/src/hooks/useLayoutMode';
 
 /** Keeps local reminders in sync on app start, foreground and settings changes. */
 export function useReminders() {
-  const { settings } = useSettings();
+  const reminders = useSetting('reminders');
+  const bitacoraAlerts = useSetting('bitacoraAlerts');
+  const reminderMinutes = useSetting('reminderMinutes');
   useEffect(() => {
     if (!remindersSupported) return;
     const t = setTimeout(() => void syncReminders(), 1500);
@@ -16,5 +18,5 @@ export function useReminders() {
       clearTimeout(t);
       sub.remove();
     };
-  }, [settings.reminders, settings.bitacoraAlerts, settings.reminderMinutes]);
+  }, [reminders, bitacoraAlerts, reminderMinutes]);
 }

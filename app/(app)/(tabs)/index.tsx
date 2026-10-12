@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeTop } from '@/src/hooks/useSafeTop';
+import { useLayout } from '@/src/hooks/useLayoutMode';
 import { Ionicons } from '@expo/vector-icons';
 import { parseISO } from 'date-fns';
 import { useAuth } from '@/src/context/AuthContext';
@@ -68,10 +69,20 @@ export default function InicioScreen() {
     setRefreshing(false);
   }, [refresh, loadExtra]);
 
-  const todayItems = items.filter((i) => isSameDay(parseISO(i.data.starts_at), today));
-  const upcoming = items
-    .filter((i) => parseISO(i.data.starts_at).getTime() >= today.getTime())
-    .slice(0, 6);
+  const { tablet, wide } = useLayout();
+  const todayItems = useMemo(
+    () => items.filter((i) => isSameDay(parseISO(i.data.starts_at), today)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, today.toDateString()],
+  );
+  const upcoming = useMemo(
+    () =>
+      items
+        .filter((i) => parseISO(i.data.starts_at).getTime() >= today.getTime())
+        .slice(0, tablet ? 8 : 6),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, tablet, today.toDateString()],
+  );
 
   const name = profile?.full_name?.split(' ')[0] || profile?.username || 'equipo';
 
@@ -87,7 +98,8 @@ export default function InicioScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.white} colors={[colors.teal]} />}
         contentContainerStyle={[
           styles.pad,
-          { paddingTop: safeTop, paddingBottom: 140 },
+          { paddingTop: safeTop, paddingBottom: tablet ? 48 : 140 },
+          tablet && styles.padTablet,
         ]}
       >
         <View style={styles.topRow}>
@@ -99,6 +111,8 @@ export default function InicioScreen() {
         </FancyTitle>
         <Text style={styles.hello}>Hola, {name}</Text>
 
+        <View style={wide ? styles.cols : undefined}>
+        <View style={wide ? styles.colLeft : undefined}>
         <GlassCard strong style={styles.hero} padding={18}>
           <Text style={styles.heroTitle}>Resumen de hoy</Text>
           <Text style={styles.heroDate}>{formatDayHeading(today)}</Text>
@@ -161,6 +175,8 @@ export default function InicioScreen() {
           </PressableScale>
         </View>
 
+        </View>
+        <View style={wide ? styles.colRight : undefined}>
         <FancyTitle size={18} tilt={-3} style={styles.sectionTitle}>
           Próximos en la agenda
         </FancyTitle>
@@ -171,13 +187,20 @@ export default function InicioScreen() {
             <Text style={styles.empty}>Sin citas próximas. Agrega la primera desde el calendario.</Text>
           </GlassCard>
         ) : (
-          upcoming.map((item) => (
-            <View key={`${item.kind}-${item.data.id}`} style={shadow.card}>
-              <CalendarItemCard item={item} onPress={() => openItem(item)} />
-              <Text style={styles.when}>{formatChipDate(item.data.starts_at)}</Text>
-            </View>
-          ))
+          <View style={tablet && !wide ? styles.grid : undefined}>
+            {upcoming.map((item) => (
+              <View
+                key={`${item.kind}-${item.data.id}`}
+                style={[shadow.card, tablet && !wide ? styles.gridCell : undefined]}
+              >
+                <CalendarItemCard item={item} onPress={() => openItem(item)} />
+                <Text style={styles.when}>{formatChipDate(item.data.starts_at)}</Text>
+              </View>
+            ))}
+          </View>
         )}
+        </View>
+        </View>
       </ScrollView>
       </ScreenFocusFade>
     </TropicalBackground>
@@ -186,6 +209,12 @@ export default function InicioScreen() {
 
 const styles = StyleSheet.create({
   pad: { paddingHorizontal: 16 },
+  padTablet: { paddingHorizontal: 28, width: '100%', maxWidth: 1180, alignSelf: 'center' },
+  cols: { flexDirection: 'row', gap: 24, alignItems: 'flex-start' },
+  colLeft: { flex: 1.1 },
+  colRight: { flex: 1 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -8 },
+  gridCell: { width: '50%', paddingHorizontal: 8 },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',

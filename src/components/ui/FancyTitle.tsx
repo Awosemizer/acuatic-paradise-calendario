@@ -77,6 +77,7 @@ export function FancyTitle({
 
 const styles = StyleSheet.create({
   title: {
+    alignSelf: 'flex-start',
     letterSpacing: 0.4,
     textShadowColor: 'rgba(0, 0, 0, 0.35)',
     textShadowOffset: { width: 1, height: 2 },

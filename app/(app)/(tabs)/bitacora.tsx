@@ -1,4 +1,5 @@
 import { PressableScale } from '@/src/components/ui/PressableScale';
+import { SheetIn } from '@/src/components/ui/SheetIn';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareFlatList, KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsTablet } from '@/src/hooks/useLayoutMode';
 import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
@@ -69,6 +71,7 @@ function formatDateTime(value: string) {
 
 export default function BitacoraScreen() {
   const insets = useSafeAreaInsets();
+  const tablet = useIsTablet();
   const safeTop = useSafeTop(8);
   const { user, profile } = useAuth();
   const allowEdit = canEditBitacora(profile);
@@ -335,6 +338,12 @@ export default function BitacoraScreen() {
     <TropicalBackground>
       <ScreenFocusFade style={styles.flex}>
         <KeyboardAwareFlatList
+          key={tablet ? 'grid' : 'list'}
+          numColumns={tablet ? 2 : 1}
+          columnWrapperStyle={tablet ? styles.colWrap : undefined}
+          initialNumToRender={12}
+          maxToRenderPerBatch={10}
+          windowSize={9}
           style={styles.flex}
           data={loading ? [] : visible}
           keyExtractor={(item) => item.id}
@@ -345,9 +354,10 @@ export default function BitacoraScreen() {
           keyboardOpeningTime={0}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          contentContainerStyle={{
-            paddingBottom: 120 + insets.bottom + (selectedCount > 0 ? 72 : 0),
-          }}
+          contentContainerStyle={[
+            { paddingBottom: (tablet ? 48 : 120) + insets.bottom + (selectedCount > 0 ? 72 : 0) },
+            tablet && styles.tabletContent,
+          ]}
           ListHeaderComponent={
             <View>
               <View style={[styles.head, { paddingTop: safeTop }]}>
@@ -448,7 +458,7 @@ export default function BitacoraScreen() {
                 onPress={() => onCardPress(item)}
                 onLongPress={() => onCardLongPress(item)}
                 delayLongPress={350}
-                style={{ paddingHorizontal: 16, marginBottom: 10 }}
+                style={tablet ? [styles.gridItem, { marginBottom: 12 }] : { paddingHorizontal: 16, marginBottom: 10 }}
               >
                 <View
                   style={[
@@ -528,7 +538,7 @@ export default function BitacoraScreen() {
         >
           <KeyboardModalRoot style={styles.modalRoot}>
             <PressableScale style={styles.backdropPress} onPress={closeDetail} accessibilityRole="button" />
-            <View style={styles.sheet} pointerEvents="box-none">
+            <SheetIn style={styles.sheet}>
               <View style={[styles.sheetInner, { paddingBottom: Math.max(insets.bottom, 12) }]}>
                 {selected ? (
                   <KeyboardScreen
@@ -611,7 +621,7 @@ export default function BitacoraScreen() {
                   </KeyboardScreen>
                 ) : null}
               </View>
-            </View>
+            </SheetIn>
           </KeyboardModalRoot>
         </Modal>
 
@@ -635,7 +645,7 @@ export default function BitacoraScreen() {
                 setRegisterBulk(false);
               }}
             />
-            <View style={styles.sheet} pointerEvents="box-none">
+            <SheetIn style={styles.sheet}>
               <View style={styles.sheetInner}>
                 <KeyboardScreen
                   fill={false}
@@ -688,7 +698,7 @@ export default function BitacoraScreen() {
                   </View>
                 </KeyboardScreen>
               </View>
-            </View>
+            </SheetIn>
           </KeyboardModalRoot>
         </Modal>
 
@@ -703,7 +713,7 @@ export default function BitacoraScreen() {
         >
           <KeyboardModalRoot style={styles.modalRoot}>
             <PressableScale style={styles.backdropPress} onPress={() => setFormOpen(false)} />
-            <View style={styles.sheet} pointerEvents="box-none">
+            <SheetIn style={styles.sheet}>
               <View style={styles.sheetInner}>
                 <KeyboardScreen
                   fill={false}
@@ -767,7 +777,7 @@ export default function BitacoraScreen() {
                   </View>
                 </KeyboardScreen>
               </View>
-            </View>
+            </SheetIn>
           </KeyboardModalRoot>
         </Modal>
 
@@ -792,6 +802,9 @@ export default function BitacoraScreen() {
 }
 
 const styles = StyleSheet.create({
+  tabletContent: { width: '100%', maxWidth: 1100, alignSelf: 'center' },
+  colWrap: { paddingHorizontal: 8 },
+  gridItem: { width: '50%', paddingHorizontal: 8 },
   summaryRow: { flexDirection: 'row', gap: 12, marginHorizontal: 18, marginBottom: 8 },
   summaryText: { color: colors.white, fontWeight: '700', fontSize: 13 },
   searchRow: {
@@ -909,6 +922,7 @@ const styles = StyleSheet.create({
   },
   sheet: {
     maxHeight: '90%',
+    maxWidth: 560,
     width: '92%',
     alignSelf: 'center',
     justifyContent: 'center',

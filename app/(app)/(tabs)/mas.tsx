@@ -97,7 +97,7 @@ export default function MasScreen() {
 }
 
 const styles = StyleSheet.create({
-  pad: { paddingHorizontal: 16 },
+  pad: { paddingHorizontal: 16, width: '100%', maxWidth: 820, alignSelf: 'center' },
   pageTitle: { alignSelf: 'center', marginBottom: 14 },
   profile: { alignItems: 'center', gap: 4 },
   name: { fontSize: 20, fontWeight: '800', color: colors.ink, marginTop: 8 },

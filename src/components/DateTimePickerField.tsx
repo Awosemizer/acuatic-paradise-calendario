@@ -15,6 +15,7 @@ import {
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { colors, radius } from '@/src/theme';
+import { SheetIn } from '@/src/components/ui/SheetIn';
 import { formatTimeString } from '@/src/lib/dates';
 import { getSettings } from '@/src/lib/settingsStore';
 
@@ -133,16 +134,18 @@ function PickerModal({
     <Modal visible transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={styles.sheet}>
-          {mode === 'date' ? (
-            <CalendarPicker value={value} onPick={onPick} />
-          ) : (
-            <TimePicker value={value} onPick={onPick} />
-          )}
-          <Pressable onPress={onClose} style={styles.cancel}>
-            <Text style={styles.cancelText}>Cancelar</Text>
-          </Pressable>
-        </View>
+        <SheetIn style={styles.sheet}>
+          <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+            {mode === 'date' ? (
+              <CalendarPicker value={value} onPick={onPick} />
+            ) : (
+              <TimePicker value={value} onPick={onPick} />
+            )}
+            <Pressable onPress={onClose} style={styles.cancel}>
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </Pressable>
+          </ScrollView>
+        </SheetIn>
       </View>
     </Modal>
   );
@@ -297,6 +300,7 @@ const styles = StyleSheet.create({
   sheet: {
     width: '100%',
     maxWidth: 380,
+    maxHeight: '94%',
     backgroundColor: colors.white,
     borderRadius: radius.lg,
     padding: 16,

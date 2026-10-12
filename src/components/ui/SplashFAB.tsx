@@ -3,6 +3,8 @@ import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { colors, fill, shadow } from '@/src/theme';
+import { accentAlpha } from '@/src/lib/settingsStore';
+import { useSetting } from '@/src/hooks/useLayoutMode';
 
 type Props = {
   onPress: () => void;
@@ -11,6 +13,7 @@ type Props = {
 
 export function SplashFAB({ onPress, bottom = 24 }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
+  useSetting('accent');
 
   function pressIn() {
     Animated.spring(scale, { toValue: 0.9, useNativeDriver: true, speed: 40 }).start();
@@ -23,16 +26,16 @@ export function SplashFAB({ onPress, bottom = 24 }: Props) {
     <Animated.View style={[styles.wrap, { bottom, transform: [{ scale }] }]}>
       <View style={styles.splash} pointerEvents="none">
         <Svg width={96} height={96} viewBox="0 0 96 96">
-          <Circle cx="48" cy="48" r="40" fill="rgba(20,196,200,0.18)" />
+          <Circle cx="48" cy="48" r="40" fill={accentAlpha('aqua', 0.18)} />
           <Path
             d="M12 50 C20 30, 30 70, 40 46 C48 28, 55 72, 68 44 C78 28, 86 58, 92 48"
-            stroke="rgba(94,232,236,0.55)"
+            stroke={accentAlpha('aquaLight', 0.55)}
             strokeWidth="3"
             fill="none"
           />
           <Circle cx="22" cy="38" r="4" fill="rgba(255,255,255,0.55)" />
           <Circle cx="74" cy="58" r="5" fill="rgba(255,255,255,0.4)" />
-          <Circle cx="80" cy="34" r="3" fill="rgba(94,232,236,0.7)" />
+          <Circle cx="80" cy="34" r="3" fill={accentAlpha('aquaLight', 0.7)} />
         </Svg>
       </View>
       <Pressable

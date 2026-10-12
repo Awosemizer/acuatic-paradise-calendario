@@ -3,8 +3,8 @@
     "name": "Acuatic Paradise",
     "slug": "acuatic-paradise-calendario",
     "scheme": "acuaticparadise",
-    "version": "1.9.1",
-    "orientation": "portrait",
+    "version": "1.10.0",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -27,7 +27,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
-      "versionCode": 11,
+      "versionCode": 12,
       "permissions": [
         "REQUEST_INSTALL_PACKAGES"
       ]

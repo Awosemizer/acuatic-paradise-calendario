@@ -49,11 +49,27 @@ export async function ensureNotificationPermission(): Promise<boolean> {
 }
 
 let running = false;
+let pending = false;
+let debounce: ReturnType<typeof setTimeout> | null = null;
+
+/** Debounced re-sync, call after creating / editing / deleting visits, events or bitácora. */
+export function requestReminderSync(delay = 1200) {
+  if (!remindersSupported) return;
+  if (debounce) clearTimeout(debounce);
+  debounce = setTimeout(() => {
+    debounce = null;
+    void syncReminders();
+  }, delay);
+}
 
 /** Re-schedules all local reminders (next 7 days + daily bitácora check). */
 export async function syncReminders() {
   const n = N();
-  if (!n || running) return;
+  if (!n) return;
+  if (running) {
+    pending = true;
+    return;
+  }
   running = true;
   try {
     const s = getSettings();
@@ -87,7 +103,10 @@ export async function syncReminders() {
           at: new Date(start.getTime() - s.reminderMinutes * 60_000),
         });
       }
-      for (const it of items.filter((x) => x.at > now).slice(0, 50)) {
+      for (const it of items
+        .filter((x) => x.at > now)
+        .sort((a, b) => a.at.getTime() - b.at.getTime())
+        .slice(0, 50)) {
         await n.scheduleNotificationAsync({
           content: { title: it.title, body: it.body },
           trigger: { type: n.SchedulableTriggerInputTypes.DATE, date: it.at, channelId },
@@ -115,5 +134,9 @@ export async function syncReminders() {
     console.warn('No se pudieron programar recordatorios', err);
   } finally {
     running = false;
+    if (pending) {
+      pending = false;
+      void syncReminders();
+    }
   }
 }

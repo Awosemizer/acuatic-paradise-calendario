@@ -5,6 +5,7 @@ import { colors } from '@/src/theme';
 export type FontSizeId = 'sm' | 'md' | 'lg' | 'xl';
 export type AccentId = 'turquesa' | 'oceano' | 'coral' | 'flamenco' | 'palmera';
 export type StartView = 'day' | 'week' | 'month';
+export type TabletMode = 'auto' | 'always' | 'never';
 
 export type AppSettings = {
   fontSize: FontSizeId;
@@ -16,6 +17,7 @@ export type AppSettings = {
   bitacoraAlerts: boolean;
   showCompleted: boolean;
   confirmDeletes: boolean;
+  tabletMode: TabletMode;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -28,6 +30,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   bitacoraAlerts: true,
   showCompleted: true,
   confirmDeletes: true,
+  tabletMode: 'auto',
 };
 
 export const FONT_SCALES: Record<FontSizeId, number> = { sm: 0.9, md: 1, lg: 1.15, xl: 1.3 };
@@ -78,15 +81,37 @@ export function getStyleVersion() {
 export function getFontScale() {
   return FONT_SCALES[current.fontSize] ?? 1;
 }
-export function mapColor(value: string) {
-  return colorMap[value.toUpperCase()] ?? value;
+function hexToRgb(hex: string) {
+  const h = hex.replace('#', '');
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
+const RGBA_RE = /^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)$/i;
+export function mapColor(value: string) {
+  const direct = colorMap[value.toUpperCase()];
+  if (direct) return direct;
+  const m = RGBA_RE.exec(value);
+  if (m) {
+    const mapped = rgbaMap[`${m[1]},${m[2]},${m[3]}`];
+    if (mapped) return `rgba(${mapped},${m[4]})`;
+  }
+  return value;
+}
+/** Current accent colour with alpha, e.g. accentAlpha('aqua', 0.18). */
+export function accentAlpha(key: keyof AccentPalette, alpha: number) {
+  const pal = ACCENTS[current.accent]?.palette ?? BASE_ACCENT;
+  return `rgba(${hexToRgb(pal[key]).join(',')},${alpha})`;
+}
+let rgbaMap: Record<string, string> = {};
 
 function applyTheme() {
   const pal = ACCENTS[current.accent]?.palette ?? BASE_ACCENT;
   colorMap = {};
+  rgbaMap = {};
   (Object.keys(BASE_ACCENT) as (keyof AccentPalette)[]).forEach((k) => {
-    if (BASE_ACCENT[k] !== pal[k]) colorMap[BASE_ACCENT[k].toUpperCase()] = pal[k];
+    if (BASE_ACCENT[k] !== pal[k]) {
+      colorMap[BASE_ACCENT[k].toUpperCase()] = pal[k];
+      rgbaMap[hexToRgb(BASE_ACCENT[k]).join(',')] = hexToRgb(pal[k]).join(',');
+    }
     (colors as Record<string, string>)[k] = pal[k];
   });
   (colors as Record<string, string>).visit = pal.aqua;

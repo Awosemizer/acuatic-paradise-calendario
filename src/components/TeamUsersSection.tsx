@@ -1,4 +1,5 @@
 import { PressableScale } from '@/src/components/ui/PressableScale';
+import { SheetIn } from '@/src/components/ui/SheetIn';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -296,7 +297,7 @@ function UserFormModal(props: {
     >
       <KeyboardModalRoot style={styles.modalRoot}>
         <PressableScale style={styles.backdropPress} onPress={onCancel} accessibilityRole="button" />
-        <View style={styles.sheet} pointerEvents="box-none">
+        <SheetIn style={styles.sheet}>
           <View style={styles.sheetInner}>
             <KeyboardScreen
               fill={false}
@@ -378,7 +379,7 @@ function UserFormModal(props: {
               </View>
             </KeyboardScreen>
           </View>
-        </View>
+        </SheetIn>
       </KeyboardModalRoot>
     </Modal>
   );
@@ -464,7 +465,9 @@ const styles = StyleSheet.create({
   },
   sheet: {
     maxHeight: '90%',
-    marginHorizontal: 16,
+    maxWidth: 560,
+    width: '92%',
+    alignSelf: 'center',
     justifyContent: 'center',
   },
   sheetInner: {

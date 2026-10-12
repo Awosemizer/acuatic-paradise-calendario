@@ -32,7 +32,15 @@ export const colors = {
 };
 
 export const statusColors: Record<string, { bg: string; fg: string; label: string }> = {
-  programada: { bg: colors.aquaMist, fg: '#0B6E71', label: 'Programada' },
+  programada: {
+    get bg() {
+      return colors.aquaMist;
+    },
+    get fg() {
+      return colors.tealDeep;
+    },
+    label: 'Programada',
+  },
   completada: { bg: '#D9F5EA', fg: '#0F7A52', label: 'Completada' },
   cancelada: { bg: '#FDE8E8', fg: '#B42318', label: 'Cancelada' },
   no_asistio: { bg: '#FFF3D6', fg: '#9A6700', label: 'No asistió' },

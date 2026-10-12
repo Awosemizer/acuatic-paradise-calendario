@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsTablet, useSetting } from '@/src/hooks/useLayoutMode';
 import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/context/AuthContext';
@@ -54,6 +55,7 @@ function mapTaskError(message: string, code?: string) {
 
 export default function TareasScreen() {
   const insets = useSafeAreaInsets();
+  const tablet = useIsTablet();
   const safeTop = useSafeTop(8);
   const { user, profile } = useAuth();
   const allowSharedEdit = canEditTasks(profile);
@@ -67,8 +69,9 @@ export default function TareasScreen() {
   const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [toDelete, setToDelete] = useState<Task | null>(null);
-  const { settings, update: updateSettings } = useSettings();
-  const hideDone = !settings.showCompleted;
+  const { update: updateSettings } = useSettings();
+  const hideDone = !useSetting('showCompleted');
+  const confirmDeletes = useSetting('confirmDeletes');
 
   const load = useCallback(async () => {
     setError(null);
@@ -210,7 +213,7 @@ export default function TareasScreen() {
   }
 
   function askRemove(task: Task) {
-    if (settings.confirmDeletes) setToDelete(task);
+    if (confirmDeletes) setToDelete(task);
     else void remove(task);
   }
 
@@ -218,6 +221,12 @@ export default function TareasScreen() {
     <TropicalBackground>
       <ScreenFocusFade style={styles.flex}>
         <KeyboardAwareFlatList
+          key={tablet ? 'grid' : 'list'}
+          numColumns={tablet ? 2 : 1}
+          columnWrapperStyle={tablet ? styles.colWrap : undefined}
+          initialNumToRender={12}
+          maxToRenderPerBatch={10}
+          windowSize={9}
           style={styles.flex}
           data={loading ? [] : shown}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.white} colors={[colors.teal]} />}
@@ -228,7 +237,7 @@ export default function TareasScreen() {
           keyboardOpeningTime={0}
           keyboardShouldPersistTaps="always"
           keyboardDismissMode="on-drag"
-          contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+          contentContainerStyle={[{ paddingBottom: (tablet ? 48 : 120) + insets.bottom }, tablet && styles.tabletContent]}
           ListHeaderComponent={
             <View>
               <View style={[styles.head, { paddingTop: safeTop }]}>
@@ -343,7 +352,7 @@ export default function TareasScreen() {
             )
           }
           renderItem={({ item }) => (
-            <View style={{ paddingHorizontal: 16 }}>
+            <View style={tablet ? styles.gridItem : { paddingHorizontal: 16 }}>
               <View style={[styles.row, shadow.card, item.done && styles.rowDone]}>
                 <PressableScale onPress={() => toggle(item)} hitSlop={8}>
                   <Ionicons
@@ -400,6 +409,9 @@ export default function TareasScreen() {
 }
 
 const styles = StyleSheet.create({
+  tabletContent: { width: '100%', maxWidth: 1100, alignSelf: 'center' },
+  colWrap: { paddingHorizontal: 8 },
+  gridItem: { width: '50%', paddingHorizontal: 8 },
   flex: { flex: 1 },
   head: { paddingHorizontal: 16 },
   title: { marginTop: 8 },

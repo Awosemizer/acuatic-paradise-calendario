@@ -2,7 +2,7 @@ import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSettings } from '@/src/context/SettingsContext';
+import { useSetting, useIsTablet } from '@/src/hooks/useLayoutMode';
 import { DateTimePickerField } from '@/src/components/DateTimePickerField';
 import { format } from 'date-fns';
 import { formatDayHeading, formatTime, isSameDay as sameDay } from '@/src/lib/dates';
@@ -22,6 +22,7 @@ import { canEditCalendar } from '@/src/lib/permissions';
 import { useCalendarData } from '@/src/hooks/useCalendarData';
 import { shiftCursor } from '@/src/lib/dates';
 import { supabase } from '@/src/lib/supabase';
+import { requestReminderSync } from '@/src/lib/reminders';
 import { colors, fonts, radius, shadow } from '@/src/theme';
 import type { CalendarItem, CalendarView } from '@/src/types';
 
@@ -43,8 +44,8 @@ function CalendarioBody() {
   const safeTop = useSafeTop(8);
   const { profile } = useAuth();
   const allowCalendarEdit = canEditCalendar(profile);
-  const { settings } = useSettings();
-  const [view, setView] = useState<CalendarView>(settings.startView);
+  const startView = useSetting('startView');
+  const [view, setView] = useState<CalendarView>(startView);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
@@ -177,6 +178,7 @@ function CalendarioBody() {
       }
       setConfirmDelete(false);
       exitSelectMode();
+      requestReminderSync();
       await refresh();
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'No se pudo eliminar');
@@ -198,6 +200,7 @@ function CalendarioBody() {
         .in('id', ids);
       if (err) throw new Error(err.message);
       exitSelectMode();
+      requestReminderSync();
       await refresh();
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'No se pudo actualizar');

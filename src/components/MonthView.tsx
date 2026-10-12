@@ -1,6 +1,8 @@
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { getSettings } from '@/src/lib/settingsStore';
-import { parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { memo, useMemo } from 'react';
+import { useLayout } from '@/src/hooks/useLayoutMode';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { isSameDay, isSameMonth, monthGrid } from '@/src/lib/dates';
 import { colors, radius } from '@/src/theme';
@@ -24,7 +26,7 @@ type Props = {
 const DOW_MON = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const DOW_SUN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
-export function MonthView({
+export const MonthView = memo(function MonthView({
   cursor,
   selected,
   items,
@@ -36,21 +38,77 @@ export function MonthView({
   onToggleItem,
   onLongPressItem,
 }: Props) {
-  const days = monthGrid(cursor);
-  const selectedItems = items.filter((item) => isSameDay(parseISO(item.data.starts_at), selected));
+  const { tablet } = useLayout();
+  const ws = getSettings().weekStartsOn;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const days = useMemo(() => monthGrid(cursor), [cursor.getFullYear(), cursor.getMonth(), ws]);
+  const selectedItems = useMemo(
+    () => items.filter((item) => isSameDay(parseISO(item.data.starts_at), selected)),
+    [items, selected],
+  );
+  // One pass over items instead of filtering per cell.
+  const countMap = useMemo(() => {
+    const m = new Map<string, { visits: number; events: number }>();
+    for (const it of items) {
+      const k = format(parseISO(it.data.starts_at), 'yyyy-MM-dd');
+      const c = m.get(k) ?? { visits: 0, events: 0 };
+      if (it.kind === 'visit') c.visits += 1;
+      else c.events += 1;
+      m.set(k, c);
+    }
+    return m;
+  }, [items]);
+  const counts = (day: Date) => countMap.get(format(day, 'yyyy-MM-dd')) ?? { visits: 0, events: 0 };
+  const today = new Date();
 
-  const counts = (day: Date) => {
-    const dayItems = items.filter((item) => isSameDay(parseISO(item.data.starts_at), day));
-    return {
-      visits: dayItems.filter((i) => i.kind === 'visit').length,
-      events: dayItems.filter((i) => i.kind === 'event').length,
-    };
-  };
+  const agenda = (
+    <>
+      <View style={styles.dayHead}>
+        <Text style={styles.listTitle}>
+          {selected.toLocaleDateString('es-MX', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          })}
+        </Text>
+        {tablet ? (
+          <Text style={styles.listCount}>
+            {selectedItems.length === 0
+              ? 'Sin citas'
+              : selectedItems.length === 1
+                ? '1 cita'
+                : `${selectedItems.length} citas`}
+          </Text>
+        ) : null}
+      </View>
 
-  return (
-    <ScrollView contentContainerStyle={styles.pad}>
+      {selectedItems.length === 0 ? (
+        <EmptyState message="Sin citas este día." />
+      ) : (
+        selectedItems.map((item) => {
+          const key = calendarItemKey(item);
+          return (
+            <CalendarItemCard
+              key={key}
+              item={item}
+              selectMode={selectMode}
+              selected={selectedKeys?.has(key)}
+              onPress={() => {
+                if (selectMode) onToggleItem?.(item);
+                else onPressItem(item);
+              }}
+              onLongPress={() => onLongPressItem?.(item)}
+            />
+          );
+        })
+      )}
+    </>
+  );
+
+  const grid = (
+    <>
       <View style={styles.dowRow}>
-        {(getSettings().weekStartsOn === 0 ? DOW_SUN : DOW_MON).map((d) => (
+        {(ws === 0 ? DOW_SUN : DOW_MON).map((d) => (
           <Text key={d} style={styles.dow}>
             {d}
           </Text>
@@ -59,7 +117,7 @@ export function MonthView({
       <View style={styles.grid}>
         {days.map((day) => {
           const inMonth = isSameMonth(day, cursor);
-          const today = isSameDay(day, new Date());
+          const isToday = isSameDay(day, today);
           const isSel = isSameDay(day, selected);
           const { visits, events } = counts(day);
           return (
@@ -68,8 +126,9 @@ export function MonthView({
               onPress={() => onSelectDay(day)}
               style={[
                 styles.cell,
+                tablet && styles.cellTablet,
                 isSel && styles.cellSel,
-                today && !isSel && styles.cellToday,
+                isToday && !isSel && styles.cellToday,
               ]}
             >
               <Text
@@ -111,39 +170,29 @@ export function MonthView({
         </PressableScale>
       </View>
 
-      <View style={styles.dayHead}>
-        <Text style={styles.listTitle}>
-          {selected.toLocaleDateString('es-MX', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-          })}
-        </Text>
-      </View>
+    </>
+  );
 
-      {selectedItems.length === 0 ? (
-        <EmptyState message="Sin citas este día." />
-      ) : (
-        selectedItems.map((item) => {
-          const key = calendarItemKey(item);
-          return (
-            <CalendarItemCard
-              key={key}
-              item={item}
-              selectMode={selectMode}
-              selected={selectedKeys?.has(key)}
-              onPress={() => {
-                if (selectMode) onToggleItem?.(item);
-                else onPressItem(item);
-              }}
-              onLongPress={() => onLongPressItem?.(item)}
-            />
-          );
-        })
-      )}
+  if (tablet) {
+    return (
+      <View style={styles.split}>
+        <ScrollView style={styles.splitMain} contentContainerStyle={styles.padTablet}>
+          {grid}
+        </ScrollView>
+        <View style={styles.sidePanel}>
+          <ScrollView contentContainerStyle={styles.sidePad}>{agenda}</ScrollView>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={styles.pad}>
+      {grid}
+      {agenda}
     </ScrollView>
   );
-}
+});
 
 const styles = StyleSheet.create({
   pad: { padding: 12, paddingBottom: 120 },
@@ -163,6 +212,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
+  cellTablet: { aspectRatio: undefined, height: 64 },
+  split: { flex: 1, flexDirection: 'row' },
+  splitMain: { flex: 1 },
+  padTablet: { padding: 16, paddingBottom: 40 },
+  sidePanel: {
+    width: 360,
+    maxWidth: '45%',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderTopLeftRadius: 24,
+    borderLeftWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
+  sidePad: { padding: 16, paddingBottom: 120 },
+  listCount: { color: colors.muted, fontWeight: '700', fontSize: 12, marginTop: 2 },
   cellSel: { backgroundColor: colors.tealDeep },
   cellToday: { backgroundColor: colors.aquaMist },
   num: { fontSize: 14, fontWeight: '700', color: colors.ink },

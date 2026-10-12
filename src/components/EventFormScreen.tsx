@@ -1,3 +1,4 @@
+import { requestReminderSync } from '@/src/lib/reminders';
 import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -70,7 +71,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
       starts_at: parseDateTimeInputs(date, time).toISOString(),
       duration_minutes: duration,
       notes: notes.trim() || null,
-      created_by: user?.id ?? null,
+      ...(eventId ? {} : { created_by: user?.id ?? null }),
     };
     const query = eventId
       ? supabase.from('events').update(payload).eq('id', eventId)
@@ -81,6 +82,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
       setError(err.message);
       return;
     }
+    requestReminderSync();
     router.back();
   }
 
@@ -92,6 +94,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
       setError(err.message);
       return;
     }
+    requestReminderSync();
     router.back();
   }
 
@@ -157,7 +160,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.offWhite },
-  pad: { padding: 20 },
+  pad: { padding: 20, width: '100%', maxWidth: 720, alignSelf: 'center' },
   back: { color: colors.sky, fontWeight: '700', marginBottom: 8 },
   title: { fontSize: 26, fontWeight: '800', color: colors.ink },
   kicker: { color: colors.coral, fontWeight: '800', marginBottom: 18, marginTop: 4 },

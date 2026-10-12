@@ -12,6 +12,7 @@ import {
   type AccentId,
   type FontSizeId,
   type StartView,
+  type TabletMode,
 } from '@/src/lib/settingsStore';
 import { remindersSupported, syncReminders } from '@/src/lib/reminders';
 import { colors, radius } from '@/src/theme';
@@ -26,6 +27,11 @@ const VIEW_OPTIONS: { id: StartView; label: string }[] = [
   { id: 'day', label: 'Día' },
   { id: 'week', label: 'Semana' },
   { id: 'month', label: 'Mes' },
+];
+const TABLET_OPTIONS: { id: TabletMode; label: string }[] = [
+  { id: 'auto', label: 'Automático' },
+  { id: 'always', label: 'Siempre' },
+  { id: 'never', label: 'Nunca' },
 ];
 const REMINDER_OPTIONS = [10, 15, 30, 60, 120];
 
@@ -134,6 +140,16 @@ export default function AjustesScreen() {
           </View>
         </View>
 
+        <Text style={styles.section}>Pantalla</Text>
+        <View style={styles.card}>
+          <Text style={styles.rowLabel}>Modo tablet</Text>
+          <Chips options={TABLET_OPTIONS} value={settings.tabletMode} onChange={(v) => void update({ tabletMode: v })} />
+          <Text style={styles.hint}>
+            Automático usa el diseño de tablet en pantallas anchas (tabletas o teléfono girado) con menú lateral y
+            columnas. En el teléfono vertical se mantiene el diseño normal.
+          </Text>
+        </View>
+
         <Text style={styles.section}>Calendario</Text>
         <View style={styles.card}>
           <Text style={styles.rowLabel}>Vista al abrir el calendario</Text>
@@ -226,7 +242,7 @@ export default function AjustesScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.offWhite },
-  pad: { padding: 20, paddingBottom: 60 },
+  pad: { padding: 20, paddingBottom: 60, width: '100%', maxWidth: 720, alignSelf: 'center' },
   back: { color: colors.sky, fontWeight: '700', fontSize: 16, marginBottom: 8 },
   title: { fontSize: 28, fontWeight: '800', color: colors.ink, marginBottom: 6 },
   section: { fontSize: 13, fontWeight: '800', color: colors.tealDeep, textTransform: 'uppercase', marginTop: 18, marginBottom: 8, letterSpacing: 0.6 },

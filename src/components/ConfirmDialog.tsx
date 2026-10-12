@@ -1,4 +1,5 @@
 import { PressableScale } from '@/src/components/ui/PressableScale';
+import { SheetIn } from '@/src/components/ui/SheetIn';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius } from '@/src/theme';
 
@@ -22,9 +23,10 @@ export function ConfirmDialog({
   onCancel,
 }: Props) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <PressableScale style={styles.backdrop} onPress={onCancel}>
-        <PressableScale style={styles.sheet} onPress={() => {}}>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onCancel}>
+      <View style={styles.backdrop}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} accessibilityLabel="Cerrar" />
+        <SheetIn style={styles.sheet}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
           <View style={styles.row}>
@@ -38,8 +40,8 @@ export function ConfirmDialog({
               <Text style={styles.okText}>{confirmLabel}</Text>
             </PressableScale>
           </View>
-        </PressableScale>
-      </PressableScale>
+        </SheetIn>
+      </View>
     </Modal>
   );
 }

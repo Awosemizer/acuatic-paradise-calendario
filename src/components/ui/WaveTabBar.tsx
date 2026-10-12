@@ -35,8 +35,9 @@ const LABELS: Record<string, string> = {
   mas: 'Más',
 };
 
-export function WaveTabBar({ state, descriptors, navigation }: Props) {
+export function WaveTabBar({ state, descriptors, navigation, rail }: Props & { rail?: boolean }) {
   const insets = useSafeAreaInsets();
+  if (rail) return <SideRail state={state} descriptors={descriptors} navigation={navigation} />;
   const bottom = Math.max(insets.bottom, 8);
 
   return (
@@ -93,6 +94,66 @@ export function WaveTabBar({ state, descriptors, navigation }: Props) {
     </View>
   );
 }
+
+/** Tablet / landscape: vertical navigation rail on the left. */
+function SideRail({ state, descriptors, navigation }: Props) {
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={[railStyles.wrap, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16, paddingLeft: insets.left }]}>
+      <View style={railStyles.logo}>
+        <Ionicons name="water" size={24} color={colors.aquaLight} />
+      </View>
+      <View style={railStyles.items}>
+        {state.routes.map((route, index) => {
+          const focused = state.index === index;
+          const { options } = descriptors[route.key];
+          const label = LABELS[route.name] ?? options.title ?? route.name;
+          const icon = ICONS[route.name] ?? 'ellipse';
+          const outline = `${icon}-outline` as keyof typeof Ionicons.glyphMap;
+          return (
+            <PressableScale
+              key={route.key}
+              accessibilityRole="button"
+              accessibilityState={focused ? { selected: true } : {}}
+              accessibilityLabel={label}
+              onPress={() => {
+                const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+                if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+              }}
+              style={railStyles.item}
+            >
+              <View style={[railStyles.pill, focused && railStyles.pillOn]}>
+                <Ionicons name={focused ? icon : outline} size={22} color={focused ? colors.white : 'rgba(255,255,255,0.6)'} />
+              </View>
+              <Text style={[railStyles.label, focused && railStyles.labelOn]} numberOfLines={1}>
+                {label}
+              </Text>
+            </PressableScale>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const railStyles = StyleSheet.create({
+  wrap: { width: 92, backgroundColor: colors.tabBar, alignItems: 'center' },
+  logo: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  items: { gap: 10, alignItems: 'center', width: '100%' },
+  item: { alignItems: 'center', gap: 4, width: '100%', paddingVertical: 4 },
+  pill: { width: 56, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  pillOn: { backgroundColor: colors.teal },
+  label: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: fonts.semiBold, fontWeight: '700' },
+  labelOn: { color: colors.aquaLight },
+});
 
 const styles = StyleSheet.create({
   wrap: {

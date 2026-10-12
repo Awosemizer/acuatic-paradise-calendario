@@ -13,7 +13,7 @@ type Props = {
 
 export function TropicalBackground({ children, style, overlay = 'dark' }: Props) {
   return (
-    <ImageBackground source={poolBg} style={[styles.bg, style]} resizeMode="cover">
+    <ImageBackground source={poolBg} style={[styles.bg, style]} imageStyle={styles.image} resizeMode="cover">
       {overlay !== 'none' && (
         <LinearGradient
           colors={
@@ -38,6 +38,7 @@ export function TropicalBackground({ children, style, overlay = 'dark' }: Props)
 
 const styles = StyleSheet.create({
   bg: { flex: 1, backgroundColor: colors.tealDeep },
+  image: { width: '100%', height: '100%' },
   flamLayer: {
     ...fill,
     zIndex: 0,
