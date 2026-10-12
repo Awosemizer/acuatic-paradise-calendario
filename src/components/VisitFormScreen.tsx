@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -124,11 +125,11 @@ export function VisitFormScreen({ visitId }: { visitId?: string }) {
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardScreen contentContainerStyle={styles.pad} bottomPadding={120} extraScrollHeight={120}>
-        <Pressable onPress={() => router.back()}>
+        <PressableScale onPress={() => router.back()}>
           <Text style={styles.back}>‹ Calendario</Text>
-        </Pressable>
+        </PressableScale>
         <Text style={styles.title}>{visitId ? 'Editar visita' : 'Nueva visita'}</Text>
-        <Text style={styles.kicker}>Cliente · aqua</Text>
+        <Text style={styles.kicker}>Datos del cliente</Text>
 
         <Field
           label="Nombre del cliente"
@@ -170,14 +171,14 @@ export function VisitFormScreen({ visitId }: { visitId?: string }) {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Pressable onPress={save} disabled={saving} style={[styles.save, saving && { opacity: 0.6 }]}>
+        <PressableScale onPress={save} disabled={saving} style={[styles.save, saving && { opacity: 0.6 }]}>
           <Text style={styles.saveText}>{saving ? 'Guardando…' : 'Guardar visita'}</Text>
-        </Pressable>
+        </PressableScale>
 
         {visitId ? (
-          <Pressable onPress={() => setConfirmDelete(true)} style={styles.delete}>
+          <PressableScale onPress={() => setConfirmDelete(true)} style={styles.delete}>
             <Text style={styles.deleteText}>Eliminar visita</Text>
-          </Pressable>
+          </PressableScale>
         ) : null}
       </KeyboardScreen>
 

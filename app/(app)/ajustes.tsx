@@ -1,9 +1,10 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useSettings } from '@/src/context/SettingsContext';
+import { settingsNav, useSettings } from '@/src/context/SettingsContext';
 import {
   ACCENTS,
   DEFAULT_SETTINGS,
@@ -42,7 +43,7 @@ function Chips<T extends string | number>({
       {options.map((o) => {
         const on = o.id === value;
         return (
-          <Pressable
+          <PressableScale
             key={String(o.id)}
             onPress={() => onChange(o.id)}
             style={[styles.chip, on && styles.chipOn]}
@@ -50,7 +51,7 @@ function Chips<T extends string | number>({
             accessibilityState={{ selected: on }}
           >
             <Text style={[styles.chipText, on && styles.chipTextOn]}>{o.label}</Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>
@@ -81,10 +82,25 @@ export default function AjustesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.pad}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
+      <ScrollView
+        contentContainerStyle={styles.pad}
+        contentOffset={{ x: 0, y: settingsNav.scrollY }}
+        scrollEventThrottle={64}
+        onScroll={(e) => {
+          settingsNav.scrollY = e.nativeEvent.contentOffset.y;
+        }}
+      >
+        <PressableScale
+          onPress={() => {
+            settingsNav.scrollY = 0;
+            if (router.canGoBack()) router.back();
+            else router.replace('/(app)/(tabs)/mas' as never);
+          }}
+          hitSlop={8}
+          style={{ alignSelf: 'flex-start' }}
+        >
           <Text style={styles.back}>‹ Volver</Text>
-        </Pressable>
+        </PressableScale>
         <Text style={styles.title}>Ajustes</Text>
 
         <Text style={styles.section}>Apariencia</Text>
@@ -101,7 +117,7 @@ export default function AjustesScreen() {
               const on = settings.accent === id;
               const pal = ACCENTS[id].palette;
               return (
-                <Pressable
+                <PressableScale
                   key={id}
                   onPress={() => void update({ accent: id })}
                   style={styles.swatchWrap}
@@ -112,7 +128,7 @@ export default function AjustesScreen() {
                     {on ? <Ionicons name="checkmark" size={18} color="#FFFFFF" style={{ position: 'absolute' }} /> : null}
                   </View>
                   <Text style={styles.swatchLabel}>{ACCENTS[id].label}</Text>
-                </Pressable>
+                </PressableScale>
               );
             })}
           </View>
@@ -160,7 +176,7 @@ export default function AjustesScreen() {
                 value={settings.bitacoraAlerts}
                 onChange={(v) => void update({ bitacoraAlerts: v })}
               />
-              <Pressable
+              <PressableScale
                 style={styles.secondary}
                 onPress={async () => {
                   await syncReminders();
@@ -169,7 +185,7 @@ export default function AjustesScreen() {
               >
                 <Ionicons name="notifications-outline" size={18} color={colors.tealDeep} />
                 <Text style={styles.secondaryText}>Actualizar recordatorios ahora</Text>
-              </Pressable>
+              </PressableScale>
             </>
           ) : (
             <Text style={styles.hint}>
@@ -192,7 +208,7 @@ export default function AjustesScreen() {
           />
         </View>
 
-        <Pressable
+        <PressableScale
           style={styles.reset}
           onPress={async () => {
             await update({ ...DEFAULT_SETTINGS });
@@ -200,7 +216,7 @@ export default function AjustesScreen() {
           }}
         >
           <Text style={styles.resetText}>Restablecer ajustes</Text>
-        </Pressable>
+        </PressableScale>
         {msg ? <Text style={styles.msg}>{msg}</Text> : null}
         <Text style={styles.foot}>Los ajustes se guardan en este dispositivo{Platform.OS === 'web' ? ' (navegador)' : ''}.</Text>
       </ScrollView>
@@ -223,12 +239,12 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.teal },
   chipText: { color: colors.navy, fontWeight: '700', fontSize: 14 },
   chipTextOn: { color: colors.white },
-  swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  swatchWrap: { alignItems: 'center', width: 62 },
+  swatches: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 6 },
+  swatchWrap: { alignItems: 'center', width: 58 },
   swatch: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   swatchInner: { position: 'absolute', right: -8, bottom: -8, width: 26, height: 26, borderRadius: 13 },
   swatchOn: { borderWidth: 3, borderColor: colors.navy },
-  swatchLabel: { fontSize: 11, color: colors.muted, marginTop: 4, fontWeight: '600' },
+  swatchLabel: { fontSize: 10.5, color: colors.muted, marginTop: 4, fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   secondary: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, paddingVertical: 10 },
   secondaryText: { color: colors.tealDeep, fontWeight: '700' },

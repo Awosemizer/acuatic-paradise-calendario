@@ -161,9 +161,22 @@ export function useBitacora() {
     });
     if (logErr) throw new Error(mapBitacoraError(logErr.message, logErr.code));
 
+    // Keep the newest date: a back-dated log must not overwrite a more recent one.
+    const { data: latest } = await supabase
+      .from('bitacora_logs')
+      .select('done_at, notes')
+      .eq('item_id', itemId)
+      .order('done_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const newest = latest?.done_at && new Date(latest.done_at) > new Date(now) ? latest : null;
     const { error: itemErr } = await supabase
       .from('bitacora_items')
-      .update({ last_done_at: now, notes: notes?.trim() || null })
+      .update(
+        newest
+          ? { last_done_at: newest.done_at }
+          : { last_done_at: now, notes: notes?.trim() || null },
+      )
       .eq('id', itemId);
     if (itemErr) throw new Error(mapBitacoraError(itemErr.message, itemErr.code));
     await load();

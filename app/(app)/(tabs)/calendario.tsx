@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -231,7 +232,7 @@ function CalendarioBody() {
       />
 
       <View style={styles.toolbar}>
-        <Pressable
+        <PressableScale
           onPress={toggleSelectMode}
           style={[styles.selectBtn, selectMode && styles.selectBtnOn]}
         >
@@ -241,16 +242,16 @@ function CalendarioBody() {
             color={selectMode ? colors.white : colors.tealDeep}
           />
           <Text style={[styles.selectBtnText, selectMode && styles.selectBtnTextOn]}>
-            {selectMode ? 'Listo' : 'Seleccionar'}
+            {selectMode ? 'Listo' : 'Elegir'}
           </Text>
-        </Pressable>
+        </PressableScale>
         {selectMode ? (
           <Text style={styles.selectHint}>
             Mantén pulsada una cita o tócala para marcar varias.
           </Text>
         ) : (
           <View style={styles.toolIcons}>
-            <Pressable
+            <PressableScale
               onPress={() => {
                 setSearchOpen((o) => !o);
                 if (searchOpen) setQuery('');
@@ -259,10 +260,10 @@ function CalendarioBody() {
               accessibilityLabel="Buscar"
             >
               <Ionicons name="search" size={18} color={searchOpen ? colors.white : colors.tealDeep} />
-            </Pressable>
-            <Pressable onPress={shareAgenda} style={styles.iconBtn} accessibilityLabel="Compartir agenda del día">
+            </PressableScale>
+            <PressableScale onPress={shareAgenda} style={styles.iconBtn} accessibilityLabel="Compartir agenda del día">
               <Ionicons name="share-social-outline" size={18} color={colors.tealDeep} />
-            </Pressable>
+            </PressableScale>
             <View style={styles.gotoWrap}>
               <DateTimePickerField
                 mode="date"
@@ -340,7 +341,7 @@ function CalendarioBody() {
           </Text>
           <View style={styles.bulkActions}>
             {allowCalendarEdit && selectedVisits.length > 0 ? (
-              <Pressable
+              <PressableScale
                 style={styles.bulkPrimary}
                 onPress={() => {
                   void markVisitsCompleted();
@@ -349,21 +350,21 @@ function CalendarioBody() {
               >
                 <Ionicons name="checkmark-done" size={16} color={colors.white} />
                 <Text style={styles.bulkPrimaryText}>Completar visitas</Text>
-              </Pressable>
+              </PressableScale>
             ) : null}
             {allowCalendarEdit ? (
-              <Pressable
+              <PressableScale
                 style={styles.bulkDanger}
                 onPress={() => setConfirmDelete(true)}
                 disabled={busy}
               >
                 <Ionicons name="trash-outline" size={16} color={colors.white} />
                 <Text style={styles.bulkPrimaryText}>Eliminar</Text>
-              </Pressable>
+              </PressableScale>
             ) : null}
-            <Pressable style={styles.bulkCancel} onPress={exitSelectMode}>
+            <PressableScale style={styles.bulkCancel} onPress={exitSelectMode}>
               <Text style={styles.bulkCancelText}>Cancelar</Text>
-            </Pressable>
+            </PressableScale>
           </View>
         </View>
       ) : null}
@@ -410,6 +411,7 @@ function CalendarioBody() {
 const styles = StyleSheet.create({
   toolIcons: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'flex-end' },
   iconBtn: {
+    flexShrink: 0,
     width: 38,
     height: 38,
     borderRadius: 19,
@@ -417,7 +419,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gotoWrap: { width: 170, marginBottom: -14 },
+  gotoWrap: { flex: 1, minWidth: 0, maxWidth: 170, marginBottom: -14 },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -440,7 +442,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectBtn: {
-    alignSelf: 'flex-start',
+    flexShrink: 0,
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

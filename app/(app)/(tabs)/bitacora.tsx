@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -363,12 +364,12 @@ export default function BitacoraScreen() {
 
               <View style={styles.toolbar}>
                 {allowEdit ? (
-                  <Pressable onPress={openCreate} style={styles.addBtn}>
+                  <PressableScale onPress={openCreate} style={styles.addBtn}>
                     <Ionicons name="add" size={22} color={colors.white} />
                     <Text style={styles.addBtnText}>Nuevo ítem</Text>
-                  </Pressable>
+                  </PressableScale>
                 ) : null}
-                <Pressable
+                <PressableScale
                   onPress={toggleSelectMode}
                   style={[styles.selectBtn, selectMode && styles.selectBtnOn]}
                 >
@@ -380,7 +381,7 @@ export default function BitacoraScreen() {
                   <Text style={[styles.selectBtnText, selectMode && styles.selectBtnTextOn]}>
                     {selectMode ? 'Listo' : 'Seleccionar'}
                   </Text>
-                </Pressable>
+                </PressableScale>
               </View>
 
               <View style={styles.summaryRow}>
@@ -398,9 +399,9 @@ export default function BitacoraScreen() {
                   style={styles.searchInput}
                 />
                 {query ? (
-                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                  <PressableScale onPress={() => setQuery('')} hitSlop={8}>
                     <Ionicons name="close-circle" size={18} color={colors.muted} />
-                  </Pressable>
+                  </PressableScale>
                 ) : null}
               </View>
 
@@ -443,7 +444,7 @@ export default function BitacoraScreen() {
             const next = nextDueAt(item);
             const checked = selectedIds.has(item.id);
             return (
-              <Pressable
+              <PressableScale
                 onPress={() => onCardPress(item)}
                 onLongPress={() => onCardLongPress(item)}
                 delayLongPress={350}
@@ -483,7 +484,7 @@ export default function BitacoraScreen() {
                     Próxima aprox · {next ? formatDate(next) : 'Pendiente de primer registro'}
                   </Text>
                 </View>
-              </Pressable>
+              </PressableScale>
             );
           }}
         />
@@ -495,23 +496,23 @@ export default function BitacoraScreen() {
             </Text>
             <View style={styles.bulkActions}>
               {allowEdit ? (
-                <Pressable
+                <PressableScale
                   style={styles.bulkPrimary}
                   onPress={() => openRegister(true)}
                 >
                   <Ionicons name="checkmark-circle" size={16} color={colors.white} />
                   <Text style={styles.bulkPrimaryText}>Registrar</Text>
-                </Pressable>
+                </PressableScale>
               ) : null}
               {allowEdit ? (
-                <Pressable style={styles.bulkDanger} onPress={() => setConfirmDeleteBulk(true)}>
+                <PressableScale style={styles.bulkDanger} onPress={() => setConfirmDeleteBulk(true)}>
                   <Ionicons name="trash-outline" size={16} color={colors.white} />
                   <Text style={styles.bulkPrimaryText}>Eliminar</Text>
-                </Pressable>
+                </PressableScale>
               ) : null}
-              <Pressable style={styles.bulkCancel} onPress={exitSelectMode}>
+              <PressableScale style={styles.bulkCancel} onPress={exitSelectMode}>
                 <Text style={styles.bulkCancelText}>Cancelar</Text>
-              </Pressable>
+              </PressableScale>
             </View>
           </View>
         ) : null}
@@ -526,7 +527,7 @@ export default function BitacoraScreen() {
           onRequestClose={closeDetail}
         >
           <KeyboardModalRoot style={styles.modalRoot}>
-            <Pressable style={styles.backdropPress} onPress={closeDetail} accessibilityRole="button" />
+            <PressableScale style={styles.backdropPress} onPress={closeDetail} accessibilityRole="button" />
             <View style={styles.sheet} pointerEvents="box-none">
               <View style={[styles.sheetInner, { paddingBottom: Math.max(insets.bottom, 12) }]}>
                 {selected ? (
@@ -539,9 +540,9 @@ export default function BitacoraScreen() {
                   >
                     <View style={styles.modalHead}>
                       <Text style={styles.modalTitle}>{selected.title}</Text>
-                      <Pressable onPress={closeDetail} hitSlop={10}>
+                      <PressableScale onPress={closeDetail} hitSlop={10}>
                         <Ionicons name="close" size={24} color={colors.muted} />
-                      </Pressable>
+                      </PressableScale>
                     </View>
                     <View style={styles.badgeRow}>
                       <View style={styles.areaBadge}>
@@ -576,19 +577,19 @@ export default function BitacoraScreen() {
                     {actionError ? <Text style={styles.error}>{actionError}</Text> : null}
 
                     {allowEdit ? (
-                      <Pressable
+                      <PressableScale
                         style={styles.primaryBtn}
                         onPress={() => openRegister(false)}
                       >
                         <Ionicons name="checkmark-circle" size={20} color={colors.white} />
                         <Text style={styles.primaryBtnText}>Registrar mantenimiento</Text>
-                      </Pressable>
+                      </PressableScale>
                     ) : null}
                     {allowEdit ? (
-                      <Pressable style={styles.secondaryBtn} onPress={() => openEdit(selected)}>
+                      <PressableScale style={styles.secondaryBtn} onPress={() => openEdit(selected)}>
                         <Ionicons name="create-outline" size={18} color={colors.tealDeep} />
                         <Text style={styles.secondaryBtnText}>Editar ítem</Text>
-                      </Pressable>
+                      </PressableScale>
                     ) : null}
 
                     <Text style={styles.sectionLabel}>Historial</Text>
@@ -627,7 +628,7 @@ export default function BitacoraScreen() {
           }}
         >
           <KeyboardModalRoot style={styles.modalRoot}>
-            <Pressable
+            <PressableScale
               style={styles.backdropPress}
               onPress={() => {
                 setRegisterOpen(false);
@@ -672,7 +673,7 @@ export default function BitacoraScreen() {
                     style={[styles.input, styles.multiline]}
                   />
                   <View style={styles.formActions}>
-                    <Pressable
+                    <PressableScale
                       style={styles.cancelBtn}
                       onPress={() => {
                         setRegisterOpen(false);
@@ -680,10 +681,10 @@ export default function BitacoraScreen() {
                       }}
                     >
                       <Text style={styles.cancelText}>Cancelar</Text>
-                    </Pressable>
-                    <Pressable style={styles.okBtn} onPress={submitRegister} disabled={saving}>
+                    </PressableScale>
+                    <PressableScale style={styles.okBtn} onPress={submitRegister} disabled={saving}>
                       <Text style={styles.okText}>{saving ? 'Guardando…' : 'Registrar'}</Text>
-                    </Pressable>
+                    </PressableScale>
                   </View>
                 </KeyboardScreen>
               </View>
@@ -701,7 +702,7 @@ export default function BitacoraScreen() {
           onRequestClose={() => setFormOpen(false)}
         >
           <KeyboardModalRoot style={styles.modalRoot}>
-            <Pressable style={styles.backdropPress} onPress={() => setFormOpen(false)} />
+            <PressableScale style={styles.backdropPress} onPress={() => setFormOpen(false)} />
             <View style={styles.sheet} pointerEvents="box-none">
               <View style={styles.sheetInner}>
                 <KeyboardScreen
@@ -725,7 +726,7 @@ export default function BitacoraScreen() {
                     {FORM_AREAS.map((opt) => {
                       const active = formArea === opt.value;
                       return (
-                        <Pressable
+                        <PressableScale
                           key={opt.value}
                           onPress={() => setFormArea(opt.value)}
                           style={[styles.areaChip, active && styles.areaChipActive]}
@@ -733,7 +734,7 @@ export default function BitacoraScreen() {
                           <Text style={[styles.areaChipText, active && styles.areaChipTextActive]}>
                             {opt.label}
                           </Text>
-                        </Pressable>
+                        </PressableScale>
                       );
                     })}
                   </View>
@@ -757,12 +758,12 @@ export default function BitacoraScreen() {
                   />
                   {formError ? <Text style={styles.error}>{formError}</Text> : null}
                   <View style={styles.formActions}>
-                    <Pressable style={styles.cancelBtn} onPress={() => setFormOpen(false)}>
+                    <PressableScale style={styles.cancelBtn} onPress={() => setFormOpen(false)}>
                       <Text style={styles.cancelText}>Cancelar</Text>
-                    </Pressable>
-                    <Pressable style={styles.okBtn} onPress={saveForm} disabled={saving}>
+                    </PressableScale>
+                    <PressableScale style={styles.okBtn} onPress={saveForm} disabled={saving}>
                       <Text style={styles.okText}>{saving ? 'Guardando…' : 'Guardar'}</Text>
-                    </Pressable>
+                    </PressableScale>
                   </View>
                 </KeyboardScreen>
               </View>
@@ -807,7 +808,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   head: { paddingHorizontal: 16 },
   title: { marginTop: 8 },
-  sub: { color: 'rgba(255,255,255,0.85)', marginTop: 2, marginBottom: 10, marginLeft: 6 },
+  sub: { color: 'rgba(255,255,255,0.9)', marginTop: 10, marginBottom: 10, marginLeft: 6 },
   tabs: { paddingHorizontal: 16, marginBottom: 10 },
   toolbar: {
     paddingHorizontal: 16,

@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow } from '@/src/theme';
 
@@ -11,21 +12,21 @@ type Props = {
 export function AddMenu({ visible, onClose, onVisit, onEvent }: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <PressableScale style={styles.backdrop} onPress={onClose}>
         <View style={styles.sheet}>
           <Text style={styles.title}>Agregar al calendario</Text>
-          <Pressable style={styles.optVisit} onPress={onVisit}>
+          <PressableScale style={styles.optVisit} onPress={onVisit}>
             <Text style={styles.optKicker}>VISITA</Text>
             <Text style={styles.optTitle}>Nueva visita de cliente</Text>
             <Text style={styles.optHint}>Recorrido, consulta o apartado</Text>
-          </Pressable>
-          <Pressable style={styles.optEvent} onPress={onEvent}>
+          </PressableScale>
+          <PressableScale style={styles.optEvent} onPress={onEvent}>
             <Text style={[styles.optKicker, { color: colors.coral }]}>EVENTO</Text>
             <Text style={styles.optTitle}>Nuevo evento interno</Text>
             <Text style={styles.optHint}>Mantenimiento, cierre u otro</Text>
-          </Pressable>
+          </PressableScale>
         </View>
-      </Pressable>
+      </PressableScale>
     </Modal>
   );
 }

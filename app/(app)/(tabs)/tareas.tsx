@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -262,7 +263,7 @@ export default function TareasScreen() {
                   onSubmitEditing={addTask}
                   returnKeyType="done"
                 />
-                <Pressable
+                <PressableScale
                   onPress={addTask}
                   style={styles.addBtn}
                   disabled={saving}
@@ -271,7 +272,7 @@ export default function TareasScreen() {
                   accessibilityLabel="Agregar tarea"
                 >
                   <Ionicons name="add" size={26} color={colors.white} />
-                </Pressable>
+                </PressableScale>
               </View>
               ) : null}
               {(allowSharedEdit || scope === 'personal') ? (
@@ -301,18 +302,18 @@ export default function TareasScreen() {
                   returnKeyType="search"
                 />
                 {query ? (
-                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                  <PressableScale onPress={() => setQuery('')} hitSlop={8}>
                     <Ionicons name="close-circle" size={18} color={colors.muted} />
-                  </Pressable>
+                  </PressableScale>
                 ) : null}
               </View>
               <View style={styles.statsRow}>
                 <Text style={styles.stat}>{pendingCount} pendientes</Text>
                 {overdueCount ? <Text style={[styles.stat, styles.statDanger]}>{overdueCount} vencidas</Text> : null}
-                <Pressable onPress={() => updateSettings({ showCompleted: hideDone })} style={styles.statBtn}>
+                <PressableScale onPress={() => updateSettings({ showCompleted: hideDone })} style={styles.statBtn}>
                   <Ionicons name={hideDone ? 'eye-outline' : 'eye-off-outline'} size={14} color={colors.white} />
                   <Text style={styles.statBtnText}>{hideDone ? 'Mostrar hechas' : 'Ocultar hechas'}</Text>
-                </Pressable>
+                </PressableScale>
               </View>
 
               {error ? (
@@ -344,13 +345,13 @@ export default function TareasScreen() {
           renderItem={({ item }) => (
             <View style={{ paddingHorizontal: 16 }}>
               <View style={[styles.row, shadow.card, item.done && styles.rowDone]}>
-                <Pressable onPress={() => toggle(item)} hitSlop={8}>
+                <PressableScale onPress={() => toggle(item)} hitSlop={8}>
                   <Ionicons
                     name={item.done ? 'checkmark-circle' : 'ellipse-outline'}
                     size={26}
                     color={item.done ? colors.success : colors.teal}
                   />
-                </Pressable>
+                </PressableScale>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={3}>
                     {item.title}
@@ -367,7 +368,7 @@ export default function TareasScreen() {
                     </Text>
                   ) : null}
                 </View>
-                <Pressable
+                <PressableScale
                   onPress={() => askRemove(item)}
                   hitSlop={8}
                   accessibilityLabel="Eliminar tarea"
@@ -375,7 +376,7 @@ export default function TareasScreen() {
                   style={!item.is_personal && !allowSharedEdit ? { opacity: 0.3 } : null}
                 >
                   <Ionicons name="trash-outline" size={20} color={colors.muted} />
-                </Pressable>
+                </PressableScale>
               </View>
             </View>
           )}
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   head: { paddingHorizontal: 16 },
   title: { marginTop: 8 },
-  sub: { color: 'rgba(255,255,255,0.85)', marginTop: 2, marginBottom: 10, marginLeft: 6 },
+  sub: { color: 'rgba(255,255,255,0.9)', marginTop: 10, marginBottom: 10, marginLeft: 6 },
   tabs: { paddingHorizontal: 16, marginBottom: 10 },
   composer: {
     flexDirection: 'row',

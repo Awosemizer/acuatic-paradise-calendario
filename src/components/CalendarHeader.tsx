@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatDayHeading, formatMonthYear, weekDays } from '@/src/lib/dates';
@@ -50,26 +51,26 @@ export function CalendarHeader({
         <FancyTitle size={28} tilt={-5} style={styles.pageTitle}>
           Calendario
         </FancyTitle>
-        <Pressable onPress={onProfile} hitSlop={8} style={styles.avatarBtn}>
+        <PressableScale onPress={onProfile} hitSlop={8} style={styles.avatarBtn}>
           <Avatar name={staffName} uri={avatarUrl} size={36} />
-        </Pressable>
+        </PressableScale>
       </View>
 
       <View style={styles.tools}>
         <View style={styles.nav}>
-          <Pressable onPress={onPrev} style={styles.navBtn}>
+          <PressableScale onPress={onPrev} style={styles.navBtn}>
             <Ionicons name="chevron-back" size={18} color={colors.white} />
-          </Pressable>
+          </PressableScale>
           <Text style={styles.navTitle} numberOfLines={1}>
             {title}
           </Text>
-          <Pressable onPress={onNext} style={styles.navBtn}>
+          <PressableScale onPress={onNext} style={styles.navBtn}>
             <Ionicons name="chevron-forward" size={18} color={colors.white} />
-          </Pressable>
-          <Pressable onPress={onToday} style={styles.hoyBtn}>
+          </PressableScale>
+          <PressableScale onPress={onToday} style={styles.hoyBtn}>
             <Ionicons name="today-outline" size={14} color={colors.tealDeep} />
             <Text style={styles.hoyText}>Hoy</Text>
-          </Pressable>
+          </PressableScale>
         </View>
 
         <SegmentedControl options={VIEWS} value={view} onChange={onView} />

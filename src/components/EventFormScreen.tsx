@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
@@ -105,9 +106,9 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardScreen contentContainerStyle={styles.pad} bottomPadding={120} extraScrollHeight={120}>
-        <Pressable onPress={() => router.back()}>
+        <PressableScale onPress={() => router.back()}>
           <Text style={styles.back}>‹ Calendario</Text>
-        </Pressable>
+        </PressableScale>
         <Text style={styles.title}>{eventId ? 'Editar evento' : 'Nuevo evento'}</Text>
         <Text style={styles.kicker}>Interno · coral</Text>
 
@@ -130,14 +131,14 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Pressable onPress={save} disabled={saving} style={[styles.save, saving && { opacity: 0.6 }]}>
+        <PressableScale onPress={save} disabled={saving} style={[styles.save, saving && { opacity: 0.6 }]}>
           <Text style={styles.saveText}>{saving ? 'Guardando…' : 'Guardar evento'}</Text>
-        </Pressable>
+        </PressableScale>
 
         {eventId ? (
-          <Pressable onPress={() => setConfirmDelete(true)} style={styles.delete}>
+          <PressableScale onPress={() => setConfirmDelete(true)} style={styles.delete}>
             <Text style={styles.deleteText}>Eliminar evento</Text>
-          </Pressable>
+          </PressableScale>
         ) : null}
       </KeyboardScreen>
 

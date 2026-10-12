@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { parseISO } from 'date-fns';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,7 +44,7 @@ export function WeekView({
           const today = isSameDay(day, new Date());
           return (
             <View key={day.toISOString()} style={styles.dayCard}>
-              <Pressable onPress={() => onPressDay(day)} style={styles.dayHead}>
+              <PressableScale onPress={() => onPressDay(day)} style={styles.dayHead}>
                 <Text style={[styles.dayName, today && styles.todayText]}>
                   {day.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric' })}
                 </Text>
@@ -52,7 +53,7 @@ export function WeekView({
                     <Text style={styles.todayPillText}>Hoy</Text>
                   </View>
                 )}
-              </Pressable>
+              </PressableScale>
               {dayItems.length === 0 ? (
                 <View style={styles.emptyBox}>
                   <Text style={styles.emptyTitle}>Sin citas</Text>
@@ -66,7 +67,7 @@ export function WeekView({
                     ? item.data.service_type || 'Visita'
                     : 'Evento interno';
                   return (
-                    <Pressable
+                    <PressableScale
                       key={`${item.kind}-${item.data.id}`}
                       onPress={() => handleItemPress(item)}
                       onLongPress={() => onLongPressItem?.(item)}
@@ -97,7 +98,7 @@ export function WeekView({
                         <Text style={styles.rowKind}>{kind}</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={16} color={colors.muted} />
-                    </Pressable>
+                    </PressableScale>
                   );
                 })
               )}
@@ -116,18 +117,18 @@ export function WeekView({
           const today = isSameDay(day, new Date());
           return (
             <View key={day.toISOString()} style={[styles.col, today && styles.colToday]}>
-              <Pressable onPress={() => onPressDay(day)} style={styles.colHead}>
+              <PressableScale onPress={() => onPressDay(day)} style={styles.colHead}>
                 <Text style={styles.colDow}>
                   {day.toLocaleDateString('es-MX', { weekday: 'short' })}
                 </Text>
                 <Text style={[styles.colNum, today && styles.todayNum]}>{day.getDate()}</Text>
-              </Pressable>
+              </PressableScale>
               <ScrollView>
                 {dayItems.map((item) => {
                   const isVisit = item.kind === 'visit';
                   const title = isVisit ? item.data.client_name : item.data.title;
                   return (
-                    <Pressable
+                    <PressableScale
                       key={`${item.kind}-${item.data.id}`}
                       onPress={() => handleItemPress(item)}
                       onLongPress={() => onLongPressItem?.(item)}
@@ -141,7 +142,7 @@ export function WeekView({
                       <Text style={styles.chipTitle} numberOfLines={2}>
                         {title}
                       </Text>
-                    </Pressable>
+                    </PressableScale>
                   );
                 })}
               </ScrollView>

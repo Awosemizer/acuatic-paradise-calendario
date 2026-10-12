@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { getSettings } from '@/src/lib/settingsStore';
 import { parseISO } from 'date-fns';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -62,7 +63,7 @@ export function MonthView({
           const isSel = isSameDay(day, selected);
           const { visits, events } = counts(day);
           return (
-            <Pressable
+            <PressableScale
               key={day.toISOString()}
               onPress={() => onSelectDay(day)}
               style={[
@@ -84,7 +85,7 @@ export function MonthView({
                 {visits > 0 && <View style={[styles.dot, { backgroundColor: colors.visit }]} />}
                 {events > 0 && <View style={[styles.dot, { backgroundColor: colors.event }]} />}
               </View>
-            </Pressable>
+            </PressableScale>
           );
         })}
       </View>
@@ -100,14 +101,14 @@ export function MonthView({
             <Text style={styles.legendText}>Eventos</Text>
           </View>
         </View>
-        <Pressable
+        <PressableScale
           onPress={() => onOpenFullAgenda?.(selected)}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="Ver agenda completa"
         >
           <Text style={styles.agendaLink}>Ver agenda completa →</Text>
-        </Pressable>
+        </PressableScale>
       </View>
 
       <View style={styles.dayHead}>

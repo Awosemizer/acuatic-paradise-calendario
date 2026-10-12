@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius } from '@/src/theme';
 
@@ -22,23 +23,23 @@ export function ConfirmDialog({
 }: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <Pressable style={styles.backdrop} onPress={onCancel}>
-        <Pressable style={styles.sheet} onPress={() => {}}>
+      <PressableScale style={styles.backdrop} onPress={onCancel}>
+        <PressableScale style={styles.sheet} onPress={() => {}}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
           <View style={styles.row}>
-            <Pressable style={styles.cancel} onPress={onCancel}>
+            <PressableScale style={styles.cancel} onPress={onCancel}>
               <Text style={styles.cancelText}>Cancelar</Text>
-            </Pressable>
-            <Pressable
+            </PressableScale>
+            <PressableScale
               style={[styles.ok, destructive && styles.okDanger]}
               onPress={onConfirm}
             >
               <Text style={styles.okText}>{confirmLabel}</Text>
-            </Pressable>
+            </PressableScale>
           </View>
-        </Pressable>
-      </Pressable>
+        </PressableScale>
+      </PressableScale>
     </Modal>
   );
 }

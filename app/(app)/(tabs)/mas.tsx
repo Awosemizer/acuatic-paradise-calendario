@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -55,7 +56,7 @@ export default function MasScreen() {
 
           <TeamUsersSection />
 
-          <Pressable
+          <PressableScale
             onPress={() => router.push('/(app)/ajustes' as never)}
             style={[styles.rowBtn, shadow.card]}
             accessibilityRole="button"
@@ -64,18 +65,18 @@ export default function MasScreen() {
             <Text style={styles.rowText}>Ajustes</Text>
             <Text style={styles.rowHint}>Letra, tema, recordatorios</Text>
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-          </Pressable>
+          </PressableScale>
 
-          <Pressable
+          <PressableScale
             onPress={() => router.push('/(app)/perfil')}
             style={[styles.rowBtn, shadow.card]}
           >
             <Ionicons name="create-outline" size={22} color={colors.tealDeep} />
             <Text style={styles.rowText}>Editar perfil</Text>
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-          </Pressable>
+          </PressableScale>
 
-          <Pressable
+          <PressableScale
             onPress={async () => {
               await signOut();
               router.replace('/login');
@@ -84,7 +85,7 @@ export default function MasScreen() {
           >
             <Ionicons name="log-out-outline" size={20} color={colors.white} />
             <Text style={styles.logoutText}>Cerrar sesión</Text>
-          </Pressable>
+          </PressableScale>
 
 
           <Text style={styles.version}>Versión {version}</Text>

@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -126,20 +127,20 @@ export default function PerfilScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.head}>
-        <Pressable onPress={() => router.back()}>
+        <PressableScale onPress={() => router.back()}>
           <Text style={styles.back}>‹ Volver</Text>
-        </Pressable>
+        </PressableScale>
         <Text style={styles.title}>Editar perfil</Text>
       </View>
 
       <KeyboardScreen contentContainerStyle={{ paddingBottom: 24 }} bottomPadding={120} extraScrollHeight={120}>
         <View style={styles.card}>
-          <Pressable onPress={pickPhoto} style={styles.avatarWrap}>
+          <PressableScale onPress={pickPhoto} style={styles.avatarWrap}>
             <Avatar name={displayName} uri={preview} size={96} />
             <View style={styles.camBadge}>
               <Ionicons name="camera" size={16} color={colors.white} />
             </View>
-          </Pressable>
+          </PressableScale>
           <Text style={styles.hint}>Toca la foto para cambiarla</Text>
           {username ? <Text style={styles.username}>@{username}</Text> : null}
         </View>
@@ -168,13 +169,13 @@ export default function PerfilScreen() {
 
         {message ? <Text style={styles.message}>{message}</Text> : null}
 
-        <Pressable onPress={onSave} style={styles.save} disabled={saving}>
+        <PressableScale onPress={onSave} style={styles.save} disabled={saving}>
           {saving ? (
             <ActivityIndicator color={colors.white} />
           ) : (
             <Text style={styles.saveText}>Guardar</Text>
           )}
-        </Pressable>
+        </PressableScale>
       </KeyboardScreen>
     </SafeAreaView>
   );

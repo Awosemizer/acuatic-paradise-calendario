@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Redirect } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -130,7 +131,7 @@ export default function LoginScreen() {
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <Pressable
+            <PressableScale
               onPress={onSubmit}
               disabled={busy || !isSupabaseConfigured}
               style={({ pressed }) => [
@@ -150,7 +151,7 @@ export default function LoginScreen() {
                 </View>
                 <Text style={styles.btnText}>{busy ? 'Entrando…' : 'Entrar'}</Text>
               </LinearGradient>
-            </Pressable>
+            </PressableScale>
           </View>
         </Animated.View>
       </KeyboardScreen>

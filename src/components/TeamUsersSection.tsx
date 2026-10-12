@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -201,13 +202,13 @@ export function TeamUsersSection() {
             </View>
             {admin ? (
               <View style={styles.rowActions}>
-                <Pressable onPress={() => openEdit(row)} hitSlop={8}>
+                <PressableScale onPress={() => openEdit(row)} hitSlop={8}>
                   <Ionicons name="create-outline" size={20} color={colors.tealDeep} />
-                </Pressable>
+                </PressableScale>
                 {row.id !== user?.id ? (
-                  <Pressable onPress={() => confirmDelete(row)} hitSlop={8}>
+                  <PressableScale onPress={() => confirmDelete(row)} hitSlop={8}>
                     <Ionicons name="trash-outline" size={20} color={colors.danger} />
-                  </Pressable>
+                  </PressableScale>
                 ) : null}
               </View>
             ) : null}
@@ -216,7 +217,7 @@ export function TeamUsersSection() {
       })}
 
       {admin ? (
-        <Pressable
+        <PressableScale
           style={styles.addBtn}
           onPress={() => {
             setDraft(emptyDraft());
@@ -225,7 +226,7 @@ export function TeamUsersSection() {
         >
           <Ionicons name="person-add-outline" size={18} color={colors.white} />
           <Text style={styles.addText}>Agregar usuario</Text>
-        </Pressable>
+        </PressableScale>
       ) : null}
 
       <UserFormModal
@@ -294,7 +295,7 @@ function UserFormModal(props: {
       onRequestClose={onCancel}
     >
       <KeyboardModalRoot style={styles.modalRoot}>
-        <Pressable style={styles.backdropPress} onPress={onCancel} accessibilityRole="button" />
+        <PressableScale style={styles.backdropPress} onPress={onCancel} accessibilityRole="button" />
         <View style={styles.sheet} pointerEvents="box-none">
           <View style={styles.sheetInner}>
             <KeyboardScreen
@@ -335,7 +336,7 @@ function UserFormModal(props: {
               <Text style={styles.label}>Rol</Text>
               <View style={styles.chips}>
                 {(['staff', 'admin', 'ceo'] as const).map((r) => (
-                  <Pressable
+                  <PressableScale
                     key={r}
                     onPress={() => setDraft({ ...draft, role: r })}
                     style={[styles.chip, draft.role === r && styles.chipOn]}
@@ -343,7 +344,7 @@ function UserFormModal(props: {
                     <Text style={[styles.chipText, draft.role === r && styles.chipTextOn]}>
                       {roleLabel(r)}
                     </Text>
-                  </Pressable>
+                  </PressableScale>
                 ))}
               </View>
               {draft.role === 'staff' ? (
@@ -368,12 +369,12 @@ function UserFormModal(props: {
                 <Text style={styles.hint}>CEO/Admin tienen todos los permisos.</Text>
               )}
               <View style={styles.actions}>
-                <Pressable style={styles.cancel} onPress={onCancel}>
+                <PressableScale style={styles.cancel} onPress={onCancel}>
                   <Text style={styles.cancelText}>Cancelar</Text>
-                </Pressable>
-                <Pressable style={styles.ok} onPress={onSubmit} disabled={saving}>
+                </PressableScale>
+                <PressableScale style={styles.ok} onPress={onSubmit} disabled={saving}>
                   <Text style={styles.okText}>{saving ? '…' : submitLabel}</Text>
-                </Pressable>
+                </PressableScale>
               </View>
             </KeyboardScreen>
           </View>

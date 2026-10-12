@@ -1,3 +1,4 @@
+import { PressableScale } from './PressableScale';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, shadow } from '@/src/theme';
 
@@ -19,7 +20,7 @@ export function SegmentedControl<T extends string>({ options, value, onChange }:
       {options.map((opt) => {
         const active = opt.id === value;
         return (
-          <Pressable
+          <PressableScale
             key={opt.id}
             onPress={() => onChange(opt.id)}
             style={[styles.tab, active && styles.tabActive]}
@@ -27,7 +28,7 @@ export function SegmentedControl<T extends string>({ options, value, onChange }:
             accessibilityState={{ selected: active }}
           >
             <Text style={[styles.text, active && styles.textActive]}>{opt.label}</Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>

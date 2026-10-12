@@ -35,7 +35,9 @@ const toDateStr = (d: Date) => format(d, 'yyyy-MM-dd');
 const toTimeStr = (d: Date) => format(d, 'HH:mm');
 
 export function displayDateStr(v: string) {
-  const raw = format(parseDateStr(v), "EEE d 'de' MMM yyyy", { locale: es });
+  const d = parseDateStr(v);
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  const raw = format(d, sameYear ? "EEE d 'de' MMM" : "EEE d MMM yyyy", { locale: es });
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 

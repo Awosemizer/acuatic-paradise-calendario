@@ -1,3 +1,4 @@
+import { PressableScale } from './PressableScale';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,7 +62,7 @@ export function WaveTabBar({ state, descriptors, navigation }: Props) {
           const outline = `${icon}-outline` as keyof typeof Ionicons.glyphMap;
 
           return (
-            <Pressable
+            <PressableScale
               key={route.key}
               accessibilityRole="button"
               accessibilityState={focused ? { selected: true } : {}}
@@ -85,7 +86,7 @@ export function WaveTabBar({ state, descriptors, navigation }: Props) {
               />
               <Text style={[styles.label, focused && styles.labelActive]}>{label}</Text>
               {focused ? <View style={styles.underline} /> : <View style={styles.underlineSpacer} />}
-            </Pressable>
+            </PressableScale>
           );
         })}
       </View>

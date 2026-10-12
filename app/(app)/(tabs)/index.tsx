@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
@@ -86,7 +87,7 @@ export default function InicioScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.white} colors={[colors.teal]} />}
         contentContainerStyle={[
           styles.pad,
-          { paddingTop: safeTop, paddingBottom: 120 },
+          { paddingTop: safeTop, paddingBottom: 140 },
         ]}
       >
         <View style={styles.topRow}>
@@ -117,18 +118,18 @@ export default function InicioScreen() {
           </View>
           {extra ? (
             <View style={styles.stats}>
-              <Pressable style={[styles.stat, styles.statSoft]} onPress={() => router.push('/(app)/(tabs)/tareas')}>
+              <PressableScale style={[styles.stat, styles.statSoft]} onPress={() => router.push('/(app)/(tabs)/tareas')}>
                 <Text style={[styles.statNum, { color: colors.navy }]}>{extra.tasks}</Text>
                 <Text style={styles.statLabel}>Tareas pendientes</Text>
                 {extra.overdueTasks ? <Text style={styles.statAlert}>{extra.overdueTasks} vencidas</Text> : null}
-              </Pressable>
-              <Pressable style={[styles.stat, styles.statSoft]} onPress={() => router.push('/(app)/(tabs)/bitacora')}>
+              </PressableScale>
+              <PressableScale style={[styles.stat, styles.statSoft]} onPress={() => router.push('/(app)/(tabs)/bitacora')}>
                 <Text style={[styles.statNum, { color: extra.bitVencidos ? colors.danger : colors.success }]}>
                   {extra.bitVencidos}
                 </Text>
                 <Text style={styles.statLabel}>Mantenimiento vencido</Text>
                 {extra.bitPronto ? <Text style={styles.statWarn}>{extra.bitPronto} pronto</Text> : null}
-              </Pressable>
+              </PressableScale>
             </View>
           ) : null}
         </GlassCard>
@@ -137,27 +138,27 @@ export default function InicioScreen() {
           Acciones rápidas
         </FancyTitle>
         <View style={styles.actions}>
-          <Pressable
+          <PressableScale
             style={[styles.action, { backgroundColor: colors.teal }]}
             onPress={() => router.push('/(app)/visita/nueva')}
           >
             <Ionicons name="person-add" size={20} color={colors.white} />
             <Text style={styles.actionText}>Nueva visita</Text>
-          </Pressable>
-          <Pressable
+          </PressableScale>
+          <PressableScale
             style={[styles.action, { backgroundColor: colors.coral }]}
             onPress={() => router.push('/(app)/evento/nuevo')}
           >
             <Ionicons name="sparkles" size={20} color={colors.white} />
             <Text style={styles.actionText}>Nuevo evento</Text>
-          </Pressable>
-          <Pressable
+          </PressableScale>
+          <PressableScale
             style={[styles.action, { backgroundColor: colors.navy }]}
             onPress={() => router.push('/(app)/(tabs)/calendario')}
           >
             <Ionicons name="calendar" size={20} color={colors.white} />
             <Text style={styles.actionText}>Ver calendario</Text>
-          </Pressable>
+          </PressableScale>
         </View>
 
         <FancyTitle size={18} tilt={-3} style={styles.sectionTitle}>
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  welcome: { marginBottom: 2, marginLeft: 4 },
+  welcome: { marginBottom: 10, marginLeft: 4 },
   hello: {
     color: 'rgba(255,255,255,0.9)',
     fontWeight: '600',
@@ -228,5 +229,18 @@ const styles = StyleSheet.create({
   },
   actionText: { color: colors.white, fontFamily: fonts.bold, fontWeight: '800', fontSize: 13 },
   empty: { color: colors.muted, textAlign: 'center' },
-  when: { color: colors.white, fontSize: 11, marginTop: -4, marginBottom: 10, marginLeft: 4 },
+  when: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: '600',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(11,30,50,0.55)',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    overflow: 'hidden',
+    marginTop: 6,
+    marginBottom: 14,
+    marginLeft: 6,
+  },
 });

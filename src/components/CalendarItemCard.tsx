@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRange } from '@/src/lib/dates';
@@ -32,7 +33,7 @@ export function CalendarItemCard({
   const range = formatRange(item.data.starts_at, item.data.duration_minutes);
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       onLongPress={onLongPress}
       delayLongPress={350}
@@ -77,7 +78,7 @@ export function CalendarItemCard({
         )}
         {isVisit && !compact && <StatusBadge status={item.data.status} />}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 

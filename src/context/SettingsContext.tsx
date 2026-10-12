@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   getSettings,
   getStyleVersion,
@@ -18,8 +18,8 @@ type Ctx = {
 
 const SettingsCtx = createContext<Ctx | null>(null);
 
-/** Set before an appearance remount so the app reopens Ajustes afterwards. */
-export const settingsNav = { returnToSettings: false };
+/** Remembers Ajustes scroll position across the appearance re-render. */
+export const settingsNav = { scrollY: 0 };
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AppSettings>(getSettings());
@@ -48,13 +48,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       (patch.accent && patch.accent !== prev.accent);
     await saveSettings(patch);
     if (visual) {
-      settingsNav.returnToSettings = true;
       setStyleKey(getStyleVersion());
     }
   }, []);
 
+  const value = useMemo(() => ({ settings, ready, styleKey, update }), [settings, ready, styleKey, update]);
   return (
-    <SettingsCtx.Provider value={{ settings, ready, styleKey, update }}>{children}</SettingsCtx.Provider>
+    <SettingsCtx.Provider value={value}>{children}</SettingsCtx.Provider>
   );
 }
 

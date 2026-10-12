@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { parseISO } from 'date-fns';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DAY_END_HOUR, DAY_START_HOUR, HOUR_HEIGHT } from '@/src/lib/constants';
@@ -80,7 +81,7 @@ export function DayView({
           const key = calendarItemKey(item);
           const selected = !!selectedKeys?.has(key);
           return (
-            <Pressable
+            <PressableScale
               key={key}
               onPress={() => {
                 if (selectMode) onToggleItem?.(item);
@@ -108,7 +109,7 @@ export function DayView({
               <Text style={styles.blockExtra} numberOfLines={1}>
                 {extra}
               </Text>
-            </Pressable>
+            </PressableScale>
           );
         })}
       </View>

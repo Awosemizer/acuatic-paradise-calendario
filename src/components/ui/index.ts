@@ -11,3 +11,4 @@ export { ErrorBoundary } from './ErrorBoundary';
 export { AppText, textStyles } from './AppText';
 export { FadeSlide } from './FadeSlide';
 export { ScreenFocusFade } from './ScreenFocusFade';
+export { PressableScale } from './PressableScale';

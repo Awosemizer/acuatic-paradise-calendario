@@ -1,3 +1,4 @@
+import { PressableScale } from '@/src/components/ui/PressableScale';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -160,10 +161,10 @@ export function UpdatesSection() {
       <Text style={styles.version}>Versión instalada: {version}</Text>
 
       {status.kind === 'idle' || status.kind === 'upToDate' || status.kind === 'error' ? (
-        <Pressable onPress={check} style={[styles.btn, styles.btnPrimary]}>
+        <PressableScale onPress={check} style={[styles.btn, styles.btnPrimary]}>
           <Ionicons name="refresh" size={18} color={colors.white} />
           <Text style={styles.btnPrimaryText}>Buscar actualizaciones</Text>
-        </Pressable>
+        </PressableScale>
       ) : null}
 
       {status.kind === 'checking' ? (
@@ -185,13 +186,13 @@ export function UpdatesSection() {
               {status.release.notes}
             </Text>
           ) : null}
-          <Pressable
+          <PressableScale
             onPress={() => install(status.release)}
             style={[styles.btn, styles.btnPrimary]}
           >
             <Ionicons name="download-outline" size={18} color={colors.white} />
             <Text style={styles.btnPrimaryText}>Descargar e instalar</Text>
-          </Pressable>
+          </PressableScale>
         </View>
       ) : null}
 
@@ -222,23 +223,23 @@ export function UpdatesSection() {
             «instalar apps desconocidas», actívalo y vuelve aquí — o toca Continuar
             instalación. No hace falta volver a descargar.
           </Text>
-          <Pressable
+          <PressableScale
             onPress={() => continueInstall(false)}
             style={[styles.btn, styles.btnPrimary]}
           >
             <Ionicons name="construct-outline" size={18} color={colors.white} />
             <Text style={styles.btnPrimaryText}>Continuar instalación</Text>
-          </Pressable>
-          <Pressable
+          </PressableScale>
+          <PressableScale
             onPress={() => void openUnknownAppSourcesSettings()}
             style={[styles.btn, styles.btnSecondary]}
           >
             <Ionicons name="settings-outline" size={18} color={colors.navy} />
             <Text style={styles.btnSecondaryText}>Abrir permiso de instalación</Text>
-          </Pressable>
-          <Pressable onPress={cancelPending} style={styles.cancelLink}>
+          </PressableScale>
+          <PressableScale onPress={cancelPending} style={styles.cancelLink}>
             <Text style={styles.cancelLinkText}>Cancelar instalación pendiente</Text>
-          </Pressable>
+          </PressableScale>
         </View>
       ) : null}
 
