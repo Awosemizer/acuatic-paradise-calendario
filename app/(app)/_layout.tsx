@@ -22,6 +22,7 @@ export default function AppGroupLayout() {
       <Stack.Screen name="evento/nuevo" options={{ presentation: 'modal' }} />
       <Stack.Screen name="evento/[id]" options={{ presentation: 'modal' }} />
       <Stack.Screen name="perfil" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

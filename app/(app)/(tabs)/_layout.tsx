@@ -1,7 +1,21 @@
-import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
+import { Tabs, useRouter } from 'expo-router';
 import { WaveTabBar } from '@/src/components/ui';
+import { settingsNav } from '@/src/context/SettingsContext';
+import { useReminders } from '@/src/hooks/useReminders';
 
 export default function TabsLayout() {
+  const router = useRouter();
+  useReminders();
+
+  useEffect(() => {
+    if (settingsNav.returnToSettings) {
+      settingsNav.returnToSettings = false;
+      const t = setTimeout(() => router.push('/(app)/ajustes' as never), 50);
+      return () => clearTimeout(t);
+    }
+  }, [router]);
+
   return (
     <Tabs
       tabBar={(props) => <WaveTabBar {...(props as any)} />}

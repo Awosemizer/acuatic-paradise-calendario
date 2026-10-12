@@ -1,8 +1,13 @@
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { supabase } from '@/src/lib/supabase';
+import { bitacoraStatus } from '@/src/hooks/useBitacora';
+import type { BitacoraItem } from '@/src/types';
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,7 +29,43 @@ export default function InicioScreen() {
   const safeTop = useSafeTop(8);
   const { profile } = useAuth();
   const today = useMemo(() => new Date(), []);
-  const { items, loading } = useCalendarData(today, 'week');
+  const { items, loading, refresh } = useCalendarData(today, 'week');
+  const { user } = useAuth();
+  const [extra, setExtra] = useState<{ tasks: number; overdueTasks: number; bitVencidos: number; bitPronto: number } | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadExtra = useCallback(async () => {
+    const [t, b] = await Promise.all([
+      supabase.from('tasks').select('id,done,due_at,is_personal,created_by').eq('done', false),
+      supabase.from('bitacora_items').select('*').eq('active', true),
+    ]);
+    const tasks = ((t.data as { due_at: string | null; is_personal: boolean; created_by: string | null }[]) ?? []).filter(
+      (x) => !x.is_personal || x.created_by === user?.id,
+    );
+    const now = Date.now();
+    const bits = (b.data as BitacoraItem[]) ?? [];
+    setExtra({
+      tasks: tasks.length,
+      overdueTasks: tasks.filter((x) => x.due_at && new Date(x.due_at).getTime() < now).length,
+      bitVencidos: bits.filter((x) => bitacoraStatus(x) === 'vencido').length,
+      bitPronto: bits.filter((x) => bitacoraStatus(x) === 'pronto').length,
+    });
+  }, [user?.id]);
+
+  useEffect(() => {
+    void loadExtra();
+  }, [loadExtra]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadExtra();
+    }, [loadExtra]),
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([refresh(), loadExtra()]);
+    setRefreshing(false);
+  }, [refresh, loadExtra]);
 
   const todayItems = items.filter((i) => isSameDay(parseISO(i.data.starts_at), today));
   const upcoming = items
@@ -42,6 +83,7 @@ export default function InicioScreen() {
     <TropicalBackground>
       <ScreenFocusFade>
       <ScrollView
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.white} colors={[colors.teal]} />}
         contentContainerStyle={[
           styles.pad,
           { paddingTop: safeTop, paddingBottom: 120 },
@@ -73,6 +115,22 @@ export default function InicioScreen() {
               <Text style={styles.statLabel}>Eventos</Text>
             </View>
           </View>
+          {extra ? (
+            <View style={styles.stats}>
+              <Pressable style={[styles.stat, styles.statSoft]} onPress={() => router.push('/(app)/(tabs)/tareas')}>
+                <Text style={[styles.statNum, { color: colors.navy }]}>{extra.tasks}</Text>
+                <Text style={styles.statLabel}>Tareas pendientes</Text>
+                {extra.overdueTasks ? <Text style={styles.statAlert}>{extra.overdueTasks} vencidas</Text> : null}
+              </Pressable>
+              <Pressable style={[styles.stat, styles.statSoft]} onPress={() => router.push('/(app)/(tabs)/bitacora')}>
+                <Text style={[styles.statNum, { color: extra.bitVencidos ? colors.danger : colors.success }]}>
+                  {extra.bitVencidos}
+                </Text>
+                <Text style={styles.statLabel}>Mantenimiento vencido</Text>
+                {extra.bitPronto ? <Text style={styles.statWarn}>{extra.bitPronto} pronto</Text> : null}
+              </Pressable>
+            </View>
+          ) : null}
         </GlassCard>
 
         <FancyTitle size={18} tilt={-3} style={styles.sectionTitle}>
@@ -152,6 +210,9 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
   },
+  statSoft: { backgroundColor: colors.skyMist },
+  statAlert: { color: colors.danger, fontSize: 11, fontWeight: '700', marginTop: 2 },
+  statWarn: { color: '#9A6700', fontSize: 11, fontWeight: '700', marginTop: 2 },
   statEvent: { backgroundColor: colors.coralMist },
   statNum: { fontSize: 24, fontFamily: fonts.bold, fontWeight: '800', color: colors.tealDeep },
   statLabel: { color: colors.muted, fontWeight: '700', fontSize: 12, marginTop: 2 },

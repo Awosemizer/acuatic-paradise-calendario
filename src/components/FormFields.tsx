@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { DateTimePickerField } from '@/src/components/DateTimePickerField';
 import { DURATION_OPTIONS } from '@/src/lib/constants';
 import { colors, radius } from '@/src/theme';
 
@@ -98,11 +99,11 @@ export function DateTimeFields({
 }) {
   return (
     <View style={styles.row}>
-      <View style={{ flex: 1.2 }}>
-        <Field label="Fecha" value={date} onChangeText={onDate} placeholder="AAAA-MM-DD" />
+      <View style={{ flex: 1.35 }}>
+        <DateTimePickerField label="Fecha" mode="date" value={date} onChange={onDate} />
       </View>
       <View style={{ flex: 1 }}>
-        <Field label="Hora" value={time} onChangeText={onTime} placeholder="HH:mm" />
+        <DateTimePickerField label="Hora" mode="time" value={time} onChange={onTime} />
       </View>
     </View>
   );

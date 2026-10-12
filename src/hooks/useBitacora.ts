@@ -151,8 +151,8 @@ export function useBitacora() {
     await load();
   }
 
-  async function registerDone(itemId: string, userId?: string | null, notes?: string) {
-    const now = new Date().toISOString();
+  async function registerDone(itemId: string, userId?: string | null, notes?: string, doneAt?: Date) {
+    const now = (doneAt ?? new Date()).toISOString();
     const { error: logErr } = await supabase.from('bitacora_logs').insert({
       item_id: itemId,
       done_at: now,
@@ -200,9 +200,9 @@ export function useBitacora() {
     await load();
   }
 
-  async function registerDoneMany(itemIds: string[], userId?: string | null, notes?: string) {
+  async function registerDoneMany(itemIds: string[], userId?: string | null, notes?: string, doneAt?: Date) {
     for (const id of itemIds) {
-      await registerDone(id, userId, notes);
+      await registerDone(id, userId, notes, doneAt);
     }
   }
 

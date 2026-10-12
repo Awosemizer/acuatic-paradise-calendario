@@ -15,6 +15,8 @@ import {
 } from '@expo-google-fonts/poppins';
 import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import { AuthProvider } from '@/src/context/AuthContext';
+import { SettingsProvider, useSettings } from '@/src/context/SettingsContext';
+import { Fragment } from 'react';
 import { colors } from '@/src/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -39,6 +41,17 @@ export default function RootLayout() {
   }
 
   return (
+    <SettingsProvider>
+      <ThemedRoot />
+    </SettingsProvider>
+  );
+}
+
+function ThemedRoot() {
+  const { ready, styleKey } = useSettings();
+  if (!ready) return null;
+
+  return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
@@ -46,6 +59,7 @@ export default function RootLayout() {
             <RNStatusBar translucent backgroundColor="transparent" barStyle="light-content" />
           ) : null}
           <StatusBar style="light" />
+          <Fragment key={styleKey}>
           <Stack
             screenOptions={{
               headerShown: false,
@@ -56,6 +70,7 @@ export default function RootLayout() {
             <Stack.Screen name="login" />
             <Stack.Screen name="(app)" />
           </Stack>
+          </Fragment>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/src/components/Avatar';
@@ -24,11 +25,10 @@ export default function MasScreen() {
   return (
     <TropicalBackground>
       <ScreenFocusFade>
-        <ScrollView
-          contentContainerStyle={[
-            styles.pad,
-            { paddingTop: safeTop, paddingBottom: 120 },
-          ]}
+        <KeyboardScreen
+          contentContainerStyle={[styles.pad, { paddingTop: safeTop }]}
+          bottomPadding={120}
+          extraScrollHeight={120}
         >
           <WoodLogo size="md" style={{ alignSelf: 'center', marginBottom: 8 }} />
           <FancyTitle size={30} tilt={-5} style={styles.pageTitle}>
@@ -56,6 +56,17 @@ export default function MasScreen() {
           <TeamUsersSection />
 
           <Pressable
+            onPress={() => router.push('/(app)/ajustes' as never)}
+            style={[styles.rowBtn, shadow.card]}
+            accessibilityRole="button"
+          >
+            <Ionicons name="settings-outline" size={22} color={colors.tealDeep} />
+            <Text style={styles.rowText}>Ajustes</Text>
+            <Text style={styles.rowHint}>Letra, tema, recordatorios</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </Pressable>
+
+          <Pressable
             onPress={() => router.push('/(app)/perfil')}
             style={[styles.rowBtn, shadow.card]}
           >
@@ -78,7 +89,7 @@ export default function MasScreen() {
 
           <Text style={styles.version}>Versión {version}</Text>
           <Text style={styles.signature}>Creado por Awosemizer</Text>
-        </ScrollView>
+        </KeyboardScreen>
       </ScreenFocusFade>
     </TropicalBackground>
   );
@@ -103,6 +114,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: 16,
   },
+  rowHint: { color: colors.muted, fontSize: 12 },
   rowText: { flex: 1, fontWeight: '700', color: colors.ink, fontSize: 15 },
   logout: {
     marginTop: 16,

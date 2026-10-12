@@ -19,6 +19,11 @@ import {
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { CalendarView } from '@/src/types';
+import { getSettings } from '@/src/lib/settingsStore';
+
+function wso() {
+  return getSettings().weekStartsOn;
+}
 
 const locale = { locale: es };
 
@@ -35,9 +40,31 @@ export function formatMonthYear(date: Date) {
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
+/** 12-hour clock, e.g. "3:05 p.m." */
 export function formatTime(date: Date | string) {
   const d = typeof date === 'string' ? parseISO(date) : date;
-  return format(d, 'HH:mm');
+  const h = d.getHours();
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${h12}:${m} ${h < 12 ? 'a.m.' : 'p.m.'}`;
+}
+
+/** "HH:mm" string -> "3:05 p.m." */
+export function formatTimeString(value: string) {
+  const [hh, mm] = value.split(':').map(Number);
+  const d = new Date();
+  d.setHours(hh || 0, mm || 0, 0, 0);
+  return formatTime(d);
+}
+
+export function formatDateLong(date: Date | string) {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  return format(d, "EEE d 'de' MMM yyyy", locale);
+}
+
+export function formatDateTimeShort(date: Date | string) {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  return `${format(d, 'd MMM yyyy', locale)} · ${formatTime(d)}`;
 }
 
 export function formatRange(start: Date | string, durationMinutes: number) {
@@ -48,7 +75,7 @@ export function formatRange(start: Date | string, durationMinutes: number) {
 
 export function formatChipDate(date: Date | string) {
   const d = typeof date === 'string' ? parseISO(date) : date;
-  return format(d, "d MMM · HH:mm", locale);
+  return `${format(d, 'd MMM', locale)} · ${formatTime(d)}`;
 }
 
 export function weekdayLetter(date: Date) {
@@ -60,15 +87,15 @@ export function rangeForView(cursor: Date, view: CalendarView) {
     return { start: startOfDay(cursor), end: endOfDay(cursor) };
   }
   if (view === 'week') {
-    const start = startOfWeek(cursor, { weekStartsOn: 1 });
-    const end = endOfWeek(cursor, { weekStartsOn: 1 });
+    const start = startOfWeek(cursor, { weekStartsOn: wso() });
+    const end = endOfWeek(cursor, { weekStartsOn: wso() });
     return { start, end };
   }
   const monthStart = startOfMonth(cursor);
   const monthEnd = endOfMonth(cursor);
   return {
-    start: startOfWeek(monthStart, { weekStartsOn: 1 }),
-    end: endOfWeek(monthEnd, { weekStartsOn: 1 }),
+    start: startOfWeek(monthStart, { weekStartsOn: wso() }),
+    end: endOfWeek(monthEnd, { weekStartsOn: wso() }),
   };
 }
 
@@ -79,13 +106,13 @@ export function shiftCursor(cursor: Date, view: CalendarView, direction: -1 | 1)
 }
 
 export function weekDays(cursor: Date) {
-  const start = startOfWeek(cursor, { weekStartsOn: 1 });
+  const start = startOfWeek(cursor, { weekStartsOn: wso() });
   return eachDayOfInterval({ start, end: addDays(start, 6) });
 }
 
 export function monthGrid(cursor: Date) {
-  const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 });
-  const end = endOfWeek(endOfMonth(cursor), { weekStartsOn: 1 });
+  const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: wso() });
+  const end = endOfWeek(endOfMonth(cursor), { weekStartsOn: wso() });
   return eachDayOfInterval({ start, end });
 }
 

@@ -1,6 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSettings } from '@/src/context/SettingsContext';
+import { DateTimePickerField } from '@/src/components/DateTimePickerField';
+import { format } from 'date-fns';
+import { formatDayHeading, formatTime, isSameDay as sameDay } from '@/src/lib/dates';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeTop } from '@/src/hooks/useSafeTop';
@@ -38,7 +42,11 @@ function CalendarioBody() {
   const safeTop = useSafeTop(8);
   const { profile } = useAuth();
   const allowCalendarEdit = canEditCalendar(profile);
-  const [view, setView] = useState<CalendarView>('week');
+  const { settings } = useSettings();
+  const [view, setView] = useState<CalendarView>(settings.startView);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [notice, setNotice] = useState<string | null>(null);
   const [cursor, setCursor] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState(() => new Date());
   const [menuOpen, setMenuOpen] = useState(false);
@@ -49,7 +57,47 @@ function CalendarioBody() {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const { items, loading, error, refresh } = useCalendarData(cursor, view);
+  const { items: allItems, loading, error, refresh } = useCalendarData(cursor, view);
+  const items = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return allItems;
+    return allItems.filter((it) => {
+      const hay =
+        it.kind === 'visit'
+          ? `${it.data.client_name} ${it.data.service_type} ${it.data.phone ?? ''} ${it.data.notes ?? ''}`
+          : `${it.data.title} ${it.data.notes ?? ''}`;
+      return hay.toLowerCase().includes(q);
+    });
+  }, [allItems, query]);
+
+  async function shareAgenda() {
+    const day = view === 'month' ? selectedDay : cursor;
+    const dayItems = allItems
+      .filter((it) => sameDay(new Date(it.data.starts_at), day))
+      .sort((a, b) => a.data.starts_at.localeCompare(b.data.starts_at));
+    const heading = formatDayHeading(day);
+    const lines = dayItems.map((it) =>
+      it.kind === 'visit'
+        ? `• ${formatTime(it.data.starts_at)} — Visita: ${it.data.client_name} (${it.data.service_type})${it.data.phone ? ` · ${it.data.phone}` : ''}`
+        : `• ${formatTime(it.data.starts_at)} — Evento: ${it.data.title}`,
+    );
+    const text = `Agenda Aquatic Paradise\n${heading.charAt(0).toUpperCase() + heading.slice(1)}\n\n${lines.length ? lines.join('\n') : 'Sin visitas ni eventos.'}`;
+    try {
+      if (Platform.OS === 'web') {
+        const nav = globalThis.navigator as Navigator | undefined;
+        if (nav?.share) await nav.share({ text });
+        else if (nav?.clipboard) {
+          await nav.clipboard.writeText(text);
+          setNotice('Agenda copiada al portapapeles.');
+          setTimeout(() => setNotice(null), 2500);
+        }
+      } else {
+        await Share.share({ message: text });
+      }
+    } catch {
+      /* cancelado */
+    }
+  }
 
   const isoForCreate = useMemo(() => {
     const d = view === 'month' ? selectedDay : cursor;
@@ -200,8 +248,52 @@ function CalendarioBody() {
           <Text style={styles.selectHint}>
             Mantén pulsada una cita o tócala para marcar varias.
           </Text>
-        ) : null}
+        ) : (
+          <View style={styles.toolIcons}>
+            <Pressable
+              onPress={() => {
+                setSearchOpen((o) => !o);
+                if (searchOpen) setQuery('');
+              }}
+              style={[styles.iconBtn, searchOpen && styles.selectBtnOn]}
+              accessibilityLabel="Buscar"
+            >
+              <Ionicons name="search" size={18} color={searchOpen ? colors.white : colors.tealDeep} />
+            </Pressable>
+            <Pressable onPress={shareAgenda} style={styles.iconBtn} accessibilityLabel="Compartir agenda del día">
+              <Ionicons name="share-social-outline" size={18} color={colors.tealDeep} />
+            </Pressable>
+            <View style={styles.gotoWrap}>
+              <DateTimePickerField
+                mode="date"
+                value={format(view === 'month' ? selectedDay : cursor, 'yyyy-MM-dd')}
+                onChange={(v) => {
+                  const d = new Date(`${v}T12:00:00`);
+                  setCursor(d);
+                  setSelectedDay(d);
+                }}
+              />
+            </View>
+          </View>
+        )}
       </View>
+      {searchOpen && !selectMode ? (
+        <View style={styles.searchRow}>
+          <Ionicons name="search" size={16} color={colors.muted} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            autoFocus
+            placeholder="Buscar cliente, servicio o evento…"
+            placeholderTextColor={colors.muted}
+            style={styles.searchInput}
+          />
+          {query ? (
+            <Text style={styles.searchCount}>{items.length}</Text>
+          ) : null}
+        </View>
+      ) : null}
+      {notice ? <Text style={styles.notice}>{notice}</Text> : null}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {actionError ? <Text style={styles.error}>{actionError}</Text> : null}
@@ -316,11 +408,36 @@ function CalendarioBody() {
 }
 
 const styles = StyleSheet.create({
+  toolIcons: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'flex-end' },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.glassStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gotoWrap: { width: 170, marginBottom: -14 },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    backgroundColor: colors.glassStrong,
+    borderRadius: 999,
+  },
+  searchInput: { flex: 1, paddingVertical: 8, fontSize: 15, color: '#0B1F3A' },
+  searchCount: { color: colors.tealDeep, fontWeight: '800' },
+  notice: { color: colors.white, textAlign: 'center', marginBottom: 6, fontWeight: '600' },
   screen: { flex: 1 },
   toolbar: {
     paddingHorizontal: 14,
     marginBottom: 8,
-    gap: 6,
+    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   selectBtn: {
     alignSelf: 'flex-start',
@@ -337,7 +454,7 @@ const styles = StyleSheet.create({
   selectBtnOn: { backgroundColor: colors.navy, borderColor: colors.navy },
   selectBtnText: { color: colors.tealDeep, fontWeight: '800', fontSize: 13 },
   selectBtnTextOn: { color: colors.white },
-  selectHint: { color: 'rgba(255,255,255,0.9)', fontSize: 12, lineHeight: 16 },
+  selectHint: { flex: 1, color: 'rgba(255,255,255,0.9)', fontSize: 12, lineHeight: 16 },
   body: {
     flex: 1,
     marginHorizontal: 10,

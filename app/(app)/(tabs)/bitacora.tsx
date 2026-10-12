@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -16,9 +15,14 @@ import { useSafeTop } from '@/src/hooks/useSafeTop';
 import { Ionicons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { formatDateTimeShort } from '@/src/lib/dates';
+import { DateTimePickerField } from '@/src/components/DateTimePickerField';
+import { RefreshControl } from 'react-native';
+import { isAfter } from 'date-fns';
 import { useAuth } from '@/src/context/AuthContext';
 import { canEditBitacora } from '@/src/lib/permissions';
 import { ConfirmDialog } from '@/src/components/ConfirmDialog';
+import { KeyboardModalRoot } from '@/src/components/KeyboardModalRoot';
 import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import {
   FancyTitle,
@@ -59,7 +63,7 @@ function formatDate(value: string | Date | null | undefined) {
 }
 
 function formatDateTime(value: string) {
-  return format(parseISO(value), "d MMM yyyy · HH:mm", { locale: es });
+  return formatDateTimeShort(value);
 }
 
 export default function BitacoraScreen() {
@@ -74,6 +78,7 @@ export default function BitacoraScreen() {
     createItem,
     updateItem,
     deleteItems,
+    reload,
     registerDone,
     registerDoneMany,
     fetchLogs,
@@ -85,6 +90,10 @@ export default function BitacoraScreen() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [registerNotes, setRegisterNotes] = useState('');
   const [registerBulk, setRegisterBulk] = useState(false);
+  const [registerDate, setRegisterDate] = useState('');
+  const [registerTime, setRegisterTime] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [query, setQuery] = useState('');
   const [saving, setSaving] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BitacoraItem | null>(null);
@@ -100,9 +109,36 @@ export default function BitacoraScreen() {
   const [confirmDeleteBulk, setConfirmDeleteBulk] = useState(false);
 
   const visible = useMemo(() => {
-    if (filter === 'todas') return items;
-    return items.filter((i) => i.area === filter);
-  }, [items, filter]);
+    const q = query.trim().toLowerCase();
+    const base = filter === 'todas' ? items : items.filter((i) => i.area === filter);
+    return q ? base.filter((i) => i.title.toLowerCase().includes(q) || (i.description ?? '').toLowerCase().includes(q)) : base;
+  }, [items, filter, query]);
+
+  const counts = useMemo(() => {
+    let vencido = 0;
+    let pronto = 0;
+    for (const i of items) {
+      const st = bitacoraStatus(i);
+      if (st === 'vencido') vencido += 1;
+      else if (st === 'pronto') pronto += 1;
+    }
+    return { vencido, pronto, total: items.length };
+  }, [items]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await reload();
+    setRefreshing(false);
+  }, [reload]);
+
+  function openRegister(bulk: boolean) {
+    const now = new Date();
+    setRegisterBulk(bulk);
+    setRegisterNotes('');
+    setRegisterDate(format(now, 'yyyy-MM-dd'));
+    setRegisterTime(format(now, 'HH:mm'));
+    setRegisterOpen(true);
+  }
 
   const selectedCount = selectedIds.size;
 
@@ -241,20 +277,27 @@ export default function BitacoraScreen() {
 
   async function submitRegister() {
     if (saving) return;
+    const doneAt = registerDate
+      ? new Date(`${registerDate}T${registerTime || '12:00'}:00`)
+      : new Date();
+    if (isAfter(doneAt, new Date(Date.now() + 5 * 60_000))) {
+      setActionError('La fecha del registro no puede ser futura.');
+      return;
+    }
     setSaving(true);
     setActionError(null);
     try {
       if (registerBulk) {
         const ids = Array.from(selectedIds);
         if (!ids.length) return;
-        await registerDoneMany(ids, user?.id, registerNotes);
+        await registerDoneMany(ids, user?.id, registerNotes, doneAt);
         setRegisterOpen(false);
         setRegisterNotes('');
         setRegisterBulk(false);
         exitSelectMode();
       } else {
         if (!selected) return;
-        await registerDone(selected.id, user?.id, registerNotes);
+        await registerDone(selected.id, user?.id, registerNotes, doneAt);
         const rows = await fetchLogs(selected.id);
         setLogs(rows);
         setRegisterOpen(false);
@@ -294,6 +337,7 @@ export default function BitacoraScreen() {
           style={styles.flex}
           data={loading ? [] : visible}
           keyExtractor={(item) => item.id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.white} colors={[colors.teal]} />}
           enableOnAndroid
           enableAutomaticScroll
           extraScrollHeight={100}
@@ -337,6 +381,27 @@ export default function BitacoraScreen() {
                     {selectMode ? 'Listo' : 'Seleccionar'}
                   </Text>
                 </Pressable>
+              </View>
+
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryText}>{counts.total} ítems</Text>
+                {counts.vencido ? <Text style={[styles.summaryText, { color: colors.coralSoft }]}>{counts.vencido} vencidos</Text> : null}
+                {counts.pronto ? <Text style={[styles.summaryText, { color: colors.gold }]}>{counts.pronto} pronto</Text> : null}
+              </View>
+              <View style={styles.searchRow}>
+                <Ionicons name="search" size={18} color={colors.muted} />
+                <TextInput
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder="Buscar en bitácora…"
+                  placeholderTextColor={colors.muted}
+                  style={styles.searchInput}
+                />
+                {query ? (
+                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                    <Ionicons name="close-circle" size={18} color={colors.muted} />
+                  </Pressable>
+                ) : null}
               </View>
 
               {selectMode ? (
@@ -432,11 +497,7 @@ export default function BitacoraScreen() {
               {allowEdit ? (
                 <Pressable
                   style={styles.bulkPrimary}
-                  onPress={() => {
-                    setRegisterBulk(true);
-                    setRegisterNotes('');
-                    setRegisterOpen(true);
-                  }}
+                  onPress={() => openRegister(true)}
                 >
                   <Ionicons name="checkmark-circle" size={16} color={colors.white} />
                   <Text style={styles.bulkPrimaryText}>Registrar</Text>
@@ -464,10 +525,7 @@ export default function BitacoraScreen() {
           statusBarTranslucent
           onRequestClose={closeDetail}
         >
-          <KeyboardAvoidingView
-            style={styles.modalRoot}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
+          <KeyboardModalRoot style={styles.modalRoot}>
             <Pressable style={styles.backdropPress} onPress={closeDetail} accessibilityRole="button" />
             <View style={styles.sheet} pointerEvents="box-none">
               <View style={[styles.sheetInner, { paddingBottom: Math.max(insets.bottom, 12) }]}>
@@ -520,11 +578,7 @@ export default function BitacoraScreen() {
                     {allowEdit ? (
                       <Pressable
                         style={styles.primaryBtn}
-                        onPress={() => {
-                          setRegisterBulk(false);
-                          setRegisterNotes('');
-                          setRegisterOpen(true);
-                        }}
+                        onPress={() => openRegister(false)}
                       >
                         <Ionicons name="checkmark-circle" size={20} color={colors.white} />
                         <Text style={styles.primaryBtnText}>Registrar mantenimiento</Text>
@@ -557,7 +611,7 @@ export default function BitacoraScreen() {
                 ) : null}
               </View>
             </View>
-          </KeyboardAvoidingView>
+          </KeyboardModalRoot>
         </Modal>
 
         {/* Register done modal */}
@@ -572,10 +626,7 @@ export default function BitacoraScreen() {
             setRegisterBulk(false);
           }}
         >
-          <KeyboardAvoidingView
-            style={styles.modalRoot}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
+          <KeyboardModalRoot style={styles.modalRoot}>
             <Pressable
               style={styles.backdropPress}
               onPress={() => {
@@ -599,9 +650,18 @@ export default function BitacoraScreen() {
                   </Text>
                   <Text style={styles.formHint}>
                     {registerBulk
-                      ? 'Se marcarán todos los ítems elegidos como hechos ahora. Las notas (opcionales) se aplican a todos.'
-                      : 'Se marcará como hecho ahora y quedará en el historial.'}
+                      ? 'Se marcarán todos los ítems elegidos como hechos. Las notas (opcionales) se aplican a todos.'
+                      : 'Quedará en el historial. Cambia la fecha si se hizo antes.'}
                   </Text>
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <View style={{ flex: 1.35 }}>
+                      <DateTimePickerField label="Fecha" mode="date" value={registerDate} onChange={setRegisterDate} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <DateTimePickerField label="Hora" mode="time" value={registerTime} onChange={setRegisterTime} />
+                    </View>
+                  </View>
+                  {actionError && registerOpen ? <Text style={styles.error}>{actionError}</Text> : null}
                   <Text style={styles.label}>Notas (opcional)</Text>
                   <TextInput
                     value={registerNotes}
@@ -628,7 +688,7 @@ export default function BitacoraScreen() {
                 </KeyboardScreen>
               </View>
             </View>
-          </KeyboardAvoidingView>
+          </KeyboardModalRoot>
         </Modal>
 
         {/* Create / edit modal */}
@@ -640,10 +700,7 @@ export default function BitacoraScreen() {
           statusBarTranslucent
           onRequestClose={() => setFormOpen(false)}
         >
-          <KeyboardAvoidingView
-            style={styles.modalRoot}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
+          <KeyboardModalRoot style={styles.modalRoot}>
             <Pressable style={styles.backdropPress} onPress={() => setFormOpen(false)} />
             <View style={styles.sheet} pointerEvents="box-none">
               <View style={styles.sheetInner}>
@@ -710,7 +767,7 @@ export default function BitacoraScreen() {
                 </KeyboardScreen>
               </View>
             </View>
-          </KeyboardAvoidingView>
+          </KeyboardModalRoot>
         </Modal>
 
         <ConfirmDialog
@@ -734,6 +791,19 @@ export default function BitacoraScreen() {
 }
 
 const styles = StyleSheet.create({
+  summaryRow: { flexDirection: 'row', gap: 12, marginHorizontal: 18, marginBottom: 8 },
+  summaryText: { color: colors.white, fontWeight: '700', fontSize: 13 },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    backgroundColor: colors.glass,
+    borderRadius: 999,
+  },
+  searchInput: { flex: 1, paddingVertical: 9, fontSize: 15, color: '#0B1F3A' },
   flex: { flex: 1 },
   head: { paddingHorizontal: 16 },
   title: { marginTop: 8 },

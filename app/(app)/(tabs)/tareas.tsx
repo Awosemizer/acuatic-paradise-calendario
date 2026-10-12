@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -25,6 +26,18 @@ import {
   WoodLogo,
 } from '@/src/components/ui';
 import type { Task } from '@/src/types';
+import { ConfirmDialog } from '@/src/components/ConfirmDialog';
+import { DateTimePickerField } from '@/src/components/DateTimePickerField';
+import { useSettings } from '@/src/context/SettingsContext';
+import { endOfDay, format, isBefore, isToday, isTomorrow, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
+
+function dueLabel(due: string) {
+  const d = parseISO(due);
+  if (isToday(d)) return 'Vence hoy';
+  if (isTomorrow(d)) return 'Vence mañana';
+  return `Vence ${format(d, "EEE d 'de' MMM", { locale: es })}`;
+}
 
 type TaskScope = 'shared' | 'personal';
 
@@ -49,6 +62,12 @@ export default function TareasScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dueDate, setDueDate] = useState('');
+  const [query, setQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [toDelete, setToDelete] = useState<Task | null>(null);
+  const { settings, update: updateSettings } = useSettings();
+  const hideDone = !settings.showCompleted;
 
   const load = useCallback(async () => {
     setError(null);
@@ -102,6 +121,31 @@ export default function TareasScreen() {
     return tasks.filter((t) => !t.is_personal);
   }, [tasks, scope, user?.id]);
 
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return visible
+      .filter((t) => (hideDone ? !t.done : true))
+      .filter((t) => (q ? t.title.toLowerCase().includes(q) : true))
+      .sort((a, b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        if (a.due_at && b.due_at) return a.due_at.localeCompare(b.due_at);
+        if (a.due_at) return -1;
+        if (b.due_at) return 1;
+        return b.created_at.localeCompare(a.created_at);
+      });
+  }, [visible, hideDone, query]);
+
+  const pendingCount = visible.filter((t) => !t.done).length;
+  const overdueCount = visible.filter(
+    (t) => !t.done && t.due_at && isBefore(parseISO(t.due_at), new Date()),
+  ).length;
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }, [load]);
+
   async function addTask() {
     const t = title.trim();
     if (saving) return;
@@ -132,6 +176,7 @@ export default function TareasScreen() {
         done: false,
         created_by: user.id,
         is_personal: isPersonal,
+        due_at: dueDate ? endOfDay(new Date(`${dueDate}T12:00:00`)).toISOString() : null,
       });
       if (err) {
         const msg = mapTaskError(err.message, err.code);
@@ -139,6 +184,7 @@ export default function TareasScreen() {
         Alert.alert('No se pudo guardar', msg);
       } else {
         setTitle('');
+        setDueDate('');
         await load();
       }
     } catch (e) {
@@ -157,8 +203,14 @@ export default function TareasScreen() {
   }
 
   async function remove(task: Task) {
-    await supabase.from('tasks').delete().eq('id', task.id);
+    const { error: err } = await supabase.from('tasks').delete().eq('id', task.id);
+    if (err) setError(mapTaskError(err.message, err.code));
     load();
+  }
+
+  function askRemove(task: Task) {
+    if (settings.confirmDeletes) setToDelete(task);
+    else void remove(task);
   }
 
   return (
@@ -166,7 +218,8 @@ export default function TareasScreen() {
       <ScreenFocusFade style={styles.flex}>
         <KeyboardAwareFlatList
           style={styles.flex}
-          data={loading ? [] : visible}
+          data={loading ? [] : shown}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.white} colors={[colors.teal]} />}
           keyExtractor={(item) => item.id}
           enableOnAndroid
           enableAutomaticScroll
@@ -220,11 +273,47 @@ export default function TareasScreen() {
                   <Ionicons name="add" size={26} color={colors.white} />
                 </Pressable>
               </View>
+              ) : null}
+              {(allowSharedEdit || scope === 'personal') ? (
+                <View style={styles.dueRow}>
+                  <DateTimePickerField
+                    mode="date"
+                    value={dueDate}
+                    onChange={setDueDate}
+                    placeholder="Fecha límite (opcional)"
+                    onClear={() => setDueDate('')}
+                  />
+                </View>
               ) : (
                 <Text style={[styles.sub, { marginHorizontal: 16 }]}>
                   Solo lectura en tareas del equipo. Un admin puede darte permiso.
                 </Text>
               )}
+
+              <View style={styles.searchRow}>
+                <Ionicons name="search" size={18} color={colors.muted} />
+                <TextInput
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder="Buscar tarea…"
+                  placeholderTextColor={colors.muted}
+                  style={styles.searchInput}
+                  returnKeyType="search"
+                />
+                {query ? (
+                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                    <Ionicons name="close-circle" size={18} color={colors.muted} />
+                  </Pressable>
+                ) : null}
+              </View>
+              <View style={styles.statsRow}>
+                <Text style={styles.stat}>{pendingCount} pendientes</Text>
+                {overdueCount ? <Text style={[styles.stat, styles.statDanger]}>{overdueCount} vencidas</Text> : null}
+                <Pressable onPress={() => updateSettings({ showCompleted: hideDone })} style={styles.statBtn}>
+                  <Ionicons name={hideDone ? 'eye-outline' : 'eye-off-outline'} size={14} color={colors.white} />
+                  <Text style={styles.statBtnText}>{hideDone ? 'Mostrar hechas' : 'Ocultar hechas'}</Text>
+                </Pressable>
+              </View>
 
               {error ? (
                 <GlassCard style={{ marginHorizontal: 16, marginBottom: 8 }} padding={12}>
@@ -244,7 +333,9 @@ export default function TareasScreen() {
                   <Text style={styles.empty}>
                     {scope === 'personal'
                       ? 'Sin tareas personales. Agrega una solo para ti.'
-                      : 'Sin tareas de equipo. Agrega la primera.'}
+                      : query
+                        ? 'Ninguna tarea coincide con la búsqueda.'
+                        : 'Sin tareas de equipo. Agrega la primera.'}
                   </Text>
                 </GlassCard>
               </View>
@@ -260,15 +351,47 @@ export default function TareasScreen() {
                     color={item.done ? colors.success : colors.teal}
                   />
                 </Pressable>
-                <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={3}>
-                  {item.title}
-                </Text>
-                <Pressable onPress={() => remove(item)} hitSlop={8}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.taskTitle, item.done && styles.taskDone]} numberOfLines={3}>
+                    {item.title}
+                  </Text>
+                  {item.due_at ? (
+                    <Text
+                      style={[
+                        styles.due,
+                        !item.done && isBefore(parseISO(item.due_at), new Date()) && styles.dueLate,
+                      ]}
+                    >
+                      {!item.done && isBefore(parseISO(item.due_at), new Date()) ? 'Vencida · ' : ''}
+                      {dueLabel(item.due_at)}
+                    </Text>
+                  ) : null}
+                </View>
+                <Pressable
+                  onPress={() => askRemove(item)}
+                  hitSlop={8}
+                  accessibilityLabel="Eliminar tarea"
+                  disabled={!item.is_personal && !allowSharedEdit}
+                  style={!item.is_personal && !allowSharedEdit ? { opacity: 0.3 } : null}
+                >
                   <Ionicons name="trash-outline" size={20} color={colors.muted} />
                 </Pressable>
               </View>
             </View>
           )}
+        />
+        <ConfirmDialog
+          visible={!!toDelete}
+          title="¿Eliminar tarea?"
+          message={toDelete ? `«${toDelete.title}» se eliminará.` : ''}
+          confirmLabel="Eliminar"
+          destructive
+          onCancel={() => setToDelete(null)}
+          onConfirm={() => {
+            const t = toDelete;
+            setToDelete(null);
+            if (t) void remove(t);
+          }}
         />
       </ScreenFocusFade>
     </TropicalBackground>
@@ -316,7 +439,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   rowDone: { opacity: 0.7 },
-  taskTitle: { flex: 1, color: colors.ink, fontWeight: '600', fontSize: 15 },
+  dueRow: { paddingHorizontal: 16, marginBottom: -4 },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    backgroundColor: colors.glass,
+    borderRadius: radius.pill,
+  },
+  searchInput: { flex: 1, paddingVertical: 9, fontSize: 15, color: colors.ink },
+  statsRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 18, marginBottom: 10 },
+  stat: { color: colors.white, fontWeight: '700', fontSize: 13 },
+  statDanger: { color: colors.coralSoft },
+  statBtn: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 4 },
+  statBtnText: { color: colors.white, fontSize: 12, fontWeight: '600' },
+  due: { color: colors.tealDeep, fontSize: 12, fontWeight: '600', marginTop: 2 },
+  dueLate: { color: colors.danger },
+  taskTitle: { color: colors.ink, fontWeight: '600', fontSize: 15 },
   taskDone: { textDecorationLine: 'line-through', color: colors.muted },
   empty: { color: colors.muted, textAlign: 'center' },
   error: { color: colors.danger, fontSize: 13, lineHeight: 18 },

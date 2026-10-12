@@ -60,7 +60,7 @@ export function EventFormScreen({ eventId }: { eventId?: string }) {
       return;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
-      setError('Usa fecha AAAA-MM-DD y hora HH:mm.');
+      setError('Elige una fecha y una hora.');
       return;
     }
     setSaving(true);

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -14,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/src/components/Avatar';
+import { KeyboardModalRoot } from '@/src/components/KeyboardModalRoot';
 import { KeyboardScreen } from '@/src/components/KeyboardScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { isAdmin, roleLabel } from '@/src/lib/permissions';
@@ -293,10 +293,7 @@ function UserFormModal(props: {
       statusBarTranslucent
       onRequestClose={onCancel}
     >
-      <KeyboardAvoidingView
-        style={styles.modalRoot}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <KeyboardModalRoot style={styles.modalRoot}>
         <Pressable style={styles.backdropPress} onPress={onCancel} accessibilityRole="button" />
         <View style={styles.sheet} pointerEvents="box-none">
           <View style={styles.sheetInner}>
@@ -381,7 +378,7 @@ function UserFormModal(props: {
             </KeyboardScreen>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardModalRoot>
     </Modal>
   );
 }

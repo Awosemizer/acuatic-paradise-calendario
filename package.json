@@ -1,7 +1,7 @@
 {
   "name": "acuatic-paradise-calendario",
-  "version": "1.8.2",
-  "main": "expo-router/entry",
+  "version": "1.9.0",
+  "main": "index.js",
   "private": true,
   "scripts": {
     "start": "expo start",
@@ -16,6 +16,7 @@
     "@expo/metro-runtime": "~57.0.15",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "9.1.0",
     "@supabase/supabase-js": "^2.116.0",
     "babel-preset-expo": "~57.0.0",
     "date-fns": "^4.4.0",
@@ -28,6 +29,7 @@
     "expo-intent-launcher": "~57.0.1",
     "expo-linear-gradient": "~57.0.2",
     "expo-linking": "~57.0.10",
+    "expo-notifications": "~57.0.22",
     "expo-router": "~57.0.21",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",

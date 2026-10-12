@@ -1,0 +1,23 @@
+name: Supabase keep-alive
+
+# Evita que el proyecto gratuito de Supabase se pause por inactividad (7 días).
+on:
+  schedule:
+    - cron: '17 15 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping REST + Auth
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -e
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$SUPABASE_URL/rest/v1/bitacora_items?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "REST status: $code"
+          curl -s -o /dev/null -w "Auth health: %{http_code}\n" "$SUPABASE_URL/auth/v1/health" -H "apikey: $SUPABASE_ANON_KEY"
+          test "$code" -lt 500

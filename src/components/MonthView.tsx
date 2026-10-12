@@ -1,3 +1,4 @@
+import { getSettings } from '@/src/lib/settingsStore';
 import { parseISO } from 'date-fns';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { isSameDay, isSameMonth, monthGrid } from '@/src/lib/dates';
@@ -19,7 +20,8 @@ type Props = {
   onLongPressItem?: (item: CalendarItem) => void;
 };
 
-const DOW = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const DOW_MON = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const DOW_SUN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
 export function MonthView({
   cursor,
@@ -47,7 +49,7 @@ export function MonthView({
   return (
     <ScrollView contentContainerStyle={styles.pad}>
       <View style={styles.dowRow}>
-        {DOW.map((d) => (
+        {(getSettings().weekStartsOn === 0 ? DOW_SUN : DOW_MON).map((d) => (
           <Text key={d} style={styles.dow}>
             {d}
           </Text>
